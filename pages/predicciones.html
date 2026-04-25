@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <link rel="manifest" href="../manifest.json" />
+  <meta name="theme-color" content="#00c853" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ProdeFootball" />
+  <link rel="apple-touch-icon" href="../assets/icons/icon.svg" />
+  <title>Mis Predicciones — ProdeFootball</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="header">
+    <nav class="navbar">
+      <div class="logo">
+        <div class="logo-pulse"></div>
+        ProdeFootball
+      </div>
+      <ul class="nav-links">
+        <li><a href="../index.html">Inicio</a></li>
+        <li><a href="partidos.html">Partidos</a></li>
+        <li><a href="predicciones.html" class="active">Mis Predicciones</a></li>
+        <li><a href="clasificacion.html">Ranking</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="page-header-inner">
+      <h1 class="page-title">Mis Predicciones</h1>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <main>
+    <div class="section">
+      <div class="container">
+
+        <!-- Stats -->
+        <div class="stats-bar">
+          <div class="stat-item">
+            <span class="stat-val green" id="stat-puntos">—</span>
+            <span class="stat-label">Puntos</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-val" id="stat-aciertos">—</span>
+            <span class="stat-label">Aciertos</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-val blue" id="stat-pct">—</span>
+            <span class="stat-label">% Exito</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-val gold" id="stat-racha">—</span>
+            <span class="stat-label">Racha</span>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="pendientes">Pendientes</button>
+          <button class="tab-btn" data-tab="historial">Historial</button>
+        </div>
+
+        <!-- Pendientes -->
+        <div class="tab-content" id="tab-pendientes">
+          <div class="pred-list" id="predictions-pending">
+            <div class="pred-row">
+              <div class="pred-match">
+                <div class="skel" style="width:150px;height:11px;border-radius:4px;margin-bottom:5px"></div>
+                <div class="skel" style="width:90px;height:8px;border-radius:4px"></div>
+              </div>
+              <div class="skel" style="width:60px;height:22px;border-radius:5px"></div>
+              <div class="skel" style="width:28px;height:20px;border-radius:4px"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Historial -->
+        <div class="tab-content hidden" id="tab-historial">
+          <div class="pred-list" id="predictions-history">
+            <div class="pred-row">
+              <div class="pred-match">
+                <div class="skel" style="width:150px;height:11px;border-radius:4px;margin-bottom:5px"></div>
+                <div class="skel" style="width:90px;height:8px;border-radius:4px"></div>
+              </div>
+              <div class="skel" style="width:60px;height:22px;border-radius:5px"></div>
+              <div class="skel" style="width:28px;height:20px;border-radius:4px"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <svg width="14" height="14" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round">
+      <circle cx="50" cy="50" r="44"/>
+      <path d="M50 6 C37 22,37 78,50 94"/>
+      <path d="M50 6 C63 22,63 78,50 94"/>
+      <path d="M6 50 C22 37,78 37,94 50"/>
+      <path d="M6 50 C22 63,78 63,94 50"/>
+    </svg>
+    <span>&copy; 2026 ProdeFootball</span>
+  </footer>
+
+  <!-- BOTTOM NAV (mobile) -->
+  <nav class="bottom-nav" aria-label="Navegacion">
+    <div class="bottom-nav__inner">
+      <a href="../index.html" class="bottom-nav__item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span>Inicio</span>
+      </a>
+      <a href="partidos.html" class="bottom-nav__item">
+        <svg width="20" height="20" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round">
+          <circle cx="50" cy="50" r="44"/>
+          <path d="M50 6 C37 22,37 78,50 94"/>
+          <path d="M50 6 C63 22,63 78,50 94"/>
+          <path d="M6 50 C22 37,78 37,94 50"/>
+          <path d="M6 50 C22 63,78 63,94 50"/>
+        </svg>
+        <span>Partidos</span>
+      </a>
+      <a href="predicciones.html" class="bottom-nav__item active">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+        </svg>
+        <span>Mis Preds</span>
+      </a>
+      <a href="clasificacion.html" class="bottom-nav__item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <path d="M6 9H4.5a2.5 2.5 0 010-5H6M18 9h1.5a2.5 2.5 0 000-5H18M4 22h16M18 2H6v7a6 6 0 0012 0V2z"/>
+        </svg>
+        <span>Ranking</span>
+      </a>
+    </div>
+  </nav>
+
+  <script src="../js/mock-data.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/predictions.js"></script>
+  <script src="../js/app.js"></script>
+</body>
+</html>

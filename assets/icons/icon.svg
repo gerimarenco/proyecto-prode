@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- fondo redondeado -->
+  <rect width="512" height="512" rx="114" fill="#0a0a0f"/>
+  <!-- pelota -->
+  <circle cx="256" cy="256" r="158" fill="none" stroke="#00c853" stroke-width="11"/>
+  <!-- costuras verticales -->
+  <path d="M256 98 C193 155,193 357,256 414" fill="none" stroke="#00c853" stroke-width="8"/>
+  <path d="M256 98 C319 155,319 357,256 414" fill="none" stroke="#00c853" stroke-width="8"/>
+  <!-- costuras horizontales -->
+  <path d="M98 256 C155 193,357 193,414 256" fill="none" stroke="#00c853" stroke-width="8"/>
+  <path d="M98 256 C155 319,357 319,414 256" fill="none" stroke="#00c853" stroke-width="8"/>
+  <!-- pentagono central -->
+  <polygon points="256,210 275,224 268,248 244,248 237,224" fill="none" stroke="#00c853" stroke-width="7"/>
+</svg>
