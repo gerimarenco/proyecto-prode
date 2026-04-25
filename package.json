@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "name": "prodefootball",
   "version": "1.0.0",
   "description": "App de predicciones de partidos de futbol",
@@ -20,5 +21,21 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^6.0.0"
+=======
+  "name": "prode-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+>>>>>>> 0941632e98e2c45b4aaf5e846fe1c56f2c56c070
   }
 }
