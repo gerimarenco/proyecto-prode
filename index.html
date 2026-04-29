@@ -67,7 +67,17 @@ h1{
   display:flex;
   justify-content:space-between;
   align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
   font-size:14px;
+}
+
+input{
+  width:50px;
+  padding:5px;
+  border-radius:5px;
+  border:none;
+  text-align:center;
 }
 
 button{
@@ -96,37 +106,40 @@ button:hover{
 
 <div class="container">
   <h1>⚽ PREDECÍ LOS PARTIDOS</h1>
-
   <div id="partidos"></div>
 </div>
 
 <script>
-// DATOS DE PRUEBA (sin backend)
+
+// PARTIDOS + RESULTADOS REALES
 const partidos = [
-  { equipo1: "Boca", equipo2: "River" },
-  { equipo1: "Barcelona", equipo2: "Real Madrid" },
-  { equipo1: "PSG", equipo2: "Manchester City" }
+  { equipo1: "Boca", equipo2: "River", resultado: "2-1" },
+  { equipo1: "Barcelona", equipo2: "Real Madrid", resultado: "1-1" },
+  { equipo1: "PSG", equipo2: "Manchester City", resultado: "0-2" }
 ];
 
 const contenedor = document.getElementById("partidos");
 
+// CREAR CARDS
 partidos.forEach(p => {
   const card = document.createElement("div");
   card.className = "card";
 
- card.innerHTML = `
-  <span>${p.equipo1}</span>
-  <span>VS</span>
-  <span>${p.equipo2}</span>
+  card.innerHTML = `
+    <span>${p.equipo1}</span>
+    <span>VS</span>
+    <span>${p.equipo2}</span>
 
-  <input type="number" min="0" placeholder="0" id="g1-${p.equipo1}">
-  <input type="number" min="0" placeholder="0" id="g2-${p.equipo2}">
+    <input type="number" min="0" placeholder="0" id="g1-${p.equipo1}">
+    <input type="number" min="0" placeholder="0" id="g2-${p.equipo2}">
 
-  <button onclick="guardar('${p.equipo1}','${p.equipo2}')">Guardar</button>
-`;
+    <button onclick="guardar('${p.equipo1}','${p.equipo2}')">Guardar</button>
+  `;
 
   contenedor.appendChild(card);
 });
+
+// GUARDAR PREDICCIONES
 function guardar(e1, e2){
   const g1 = document.getElementById(`g1-${e1}`).value;
   const g2 = document.getElementById(`g2-${e2}`).value;
@@ -136,9 +149,12 @@ function guardar(e1, e2){
     return;
   }
 
+  const partidoData = partidos.find(p => p.equipo1 === e1 && p.equipo2 === e2);
+
   const pred = {
     partido: `${e1} vs ${e2}`,
-    resultado: `${g1}-${g2}`
+    resultado: `${g1}-${g2}`,
+    real: partidoData.resultado
   };
 
   let preds = JSON.parse(localStorage.getItem("predicciones")) || [];
@@ -148,6 +164,7 @@ function guardar(e1, e2){
 
   alert("Predicción guardada ⚽");
 }
+
 </script>
 
 </body>
