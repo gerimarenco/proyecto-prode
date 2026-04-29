@@ -91,29 +91,31 @@ button:hover{
 <div class="container">
   <h1>⚽ PREDECÍ LOS PARTIDOS</h1>
 
-  <div id="partidos">Cargando...</div>
+  <div id="partidos"></div>
 </div>
 
 <script>
-fetch("http://localhost:3000/partidos")
-.then(res => res.json())
-.then(data => {
-  const contenedor = document.getElementById("partidos");
-  contenedor.innerHTML = "";
+// DATOS DE PRUEBA (para que funcione sin backend)
+const partidos = [
+  { equipo1: "Boca", equipo2: "River" },
+  { equipo1: "Barcelona", equipo2: "Real Madrid" },
+  { equipo1: "PSG", equipo2: "Manchester City" }
+];
 
-  data.forEach(p => {
-    const card = document.createElement("div");
-    card.className = "card";
+const contenedor = document.getElementById("partidos");
 
-    card.innerHTML = `
-      <span>${p.equipo1}</span>
-      <span>VS</span>
-      <span>${p.equipo2}</span>
-      <button>Predecir</button>
-    `;
+partidos.forEach(p => {
+  const card = document.createElement("div");
+  card.className = "card";
 
-    contenedor.appendChild(card);
-  });
+  card.innerHTML = `
+    <span>${p.equipo1}</span>
+    <span>VS</span>
+    <span>${p.equipo2}</span>
+    <button>Predecir</button>
+  `;
+
+  contenedor.appendChild(card);
 });
 </script>
 
