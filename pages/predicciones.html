@@ -7,7 +7,10 @@
 <style>
 body{
   font-family:sans-serif;
-  background:#111;
+  background:
+    linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)),
+    url("../assets/cancha.jpg");
+  background-size: cover;
   color:white;
   padding:20px;
 }
@@ -17,24 +20,12 @@ nav{
   justify-content:center;
   gap:20px;
   padding:15px;
-  background:rgba(0,0,0,0.6);
-}
-
-nav a{
-  color:white;
-  text-decoration:none;
-}
-
-h1{
-  text-align:center;
-  color:#00ff88;
 }
 
 .card{
   background:#222;
-  padding:12px;
+  padding:10px;
   margin:10px 0;
-  border-radius:8px;
 }
 </style>
 </head>
@@ -47,7 +38,7 @@ h1{
   <a href="clasificacion.html">Ranking</a>
 </nav>
 
-<h1>📊 Tus predicciones</h1>
+<h1>📊 Predicciones</h1>
 
 <div id="lista"></div>
 
@@ -55,10 +46,6 @@ h1{
 const lista = document.getElementById("lista");
 
 let preds = JSON.parse(localStorage.getItem("predicciones")) || [];
-
-if(preds.length === 0){
-  lista.innerHTML = "No hay predicciones todavía";
-}
 
 preds.forEach(p => {
   const div = document.createElement("div");

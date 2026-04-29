@@ -52,18 +52,26 @@ nav a{
   margin:10px 0;
   border-radius:10px;
   display:flex;
-  justify-content:space-between;
+  gap:10px;
   align-items:center;
+  justify-content:space-between;
 }
 
 input{
   width:50px;
 }
 
+#nombre{
+  width:100%;
+  padding:10px;
+  margin-bottom:15px;
+}
+
 button{
   background:#00ff88;
   border:none;
   padding:6px;
+  border-radius:6px;
 }
 </style>
 </head>
@@ -78,6 +86,9 @@ button{
 
 <div class="container">
   <h1>⚽ PRODE</h1>
+
+  <input id="nombre" placeholder="Tu nombre">
+
   <div id="partidos"></div>
 </div>
 
@@ -93,6 +104,8 @@ const contenedor = document.getElementById("partidos");
 partidos.forEach(p => {
   const div = document.createElement("div");
 
+  div.className = "card";
+
   div.innerHTML = `
     ${p.equipo1} vs ${p.equipo2}
     <input id="g1-${p.equipo1}">
@@ -106,9 +119,15 @@ partidos.forEach(p => {
 function guardar(e1,e2){
   const g1 = document.getElementById(`g1-${e1}`).value;
   const g2 = document.getElementById(`g2-${e2}`).value;
+  const nombre = document.getElementById("nombre").value;
+
+  if(nombre === ""){
+    alert("Poné tu nombre");
+    return;
+  }
 
   const pred = {
-    jugador:"Mateo",
+    jugador:nombre,
     partido:`${e1} vs ${e2}`,
     resultado:`${g1}-${g2}`,
     real: partidos.find(p=>p.equipo1===e1).resultado
