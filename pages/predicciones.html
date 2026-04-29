@@ -4,62 +4,79 @@
 <meta charset="UTF-8">
 <title>Predicciones</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
-
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
-
 body{
-  background:
-    linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)),
-    url("../assets/cancha.jpg");
-  background-size:cover;
-  background-position:center;
+  font-family: 'Poppins', sans-serif;
+  background:#111;
   color:white;
-}
-
-nav{
-  display:flex;
-  justify-content:center;
-  gap:30px;
   padding:20px;
-  background:rgba(0,0,0,0.6);
-}
-
-nav a{
-  color:white;
-  text-decoration:none;
-}
-
-.container{
-  max-width:700px;
-  margin:60px auto;
-  padding:30px;
-  background:rgba(0,0,0,0.6);
-  border-radius:15px;
-  text-align:center;
 }
 
 h1{
-  color:#00ff88;
+  text-align:center;
   margin-bottom:20px;
+  color:#00ff88;
+}
+
+.card{
+  background:#222;
+  padding:12px;
+  margin:10px 0;
+  border-radius:10px;
+  display:flex;
+  justify-content:space-between;
+}
+
+.boton{
+  display:block;
+  margin:20px auto;
+  padding:10px;
+  background:#00ff88;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.boton:hover{
+  background:#00cc66;
 }
 </style>
 </head>
 
 <body>
 
-<nav>
-  <a href="../index.html">Inicio</a>
-  <a href="partidos.html">Partidos</a>
-  <a href="predicciones.html">Predicciones</a>
-  <a href="clasificacion.html">Ranking</a>
-</nav>
+<h1>📊 Tus predicciones</h1>
 
-<div class="container">
-  <h1>📊 MIS PREDICCIONES</h1>
-  <p>Acá van a aparecer tus predicciones.</p>
-</div>
+<div id="lista"></div>
+
+<button class="boton" onclick="borrar()">Borrar todo</button>
+
+<script>
+const lista = document.getElementById("lista");
+
+let preds = JSON.parse(localStorage.getItem("predicciones")) || [];
+
+if(preds.length === 0){
+  lista.innerHTML = "No hay predicciones todavía";
+}
+
+preds.forEach(p => {
+  const div = document.createElement("div");
+  div.className = "card";
+
+  div.innerHTML = `
+    <span>${p.partido}</span>
+    <span>${p.resultado}</span>
+  `;
+
+  lista.appendChild(div);
+});
+
+function borrar(){
+  localStorage.removeItem("predicciones");
+  location.reload();
+}
+</script>
 
 </body>
 </html>
