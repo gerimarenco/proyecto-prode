@@ -114,15 +114,40 @@ partidos.forEach(p => {
   const card = document.createElement("div");
   card.className = "card";
 
-  card.innerHTML = `
-    <span>${p.equipo1}</span>
-    <span>VS</span>
-    <span>${p.equipo2}</span>
-    <button>Predecir</button>
-  `;
+ card.innerHTML = `
+  <span>${p.equipo1}</span>
+  <span>VS</span>
+  <span>${p.equipo2}</span>
+
+  <input type="number" min="0" placeholder="0" id="g1-${p.equipo1}">
+  <input type="number" min="0" placeholder="0" id="g2-${p.equipo2}">
+
+  <button onclick="guardar('${p.equipo1}','${p.equipo2}')">Guardar</button>
+`;
 
   contenedor.appendChild(card);
 });
+function guardar(e1, e2){
+  const g1 = document.getElementById(`g1-${e1}`).value;
+  const g2 = document.getElementById(`g2-${e2}`).value;
+
+  if(g1 === "" || g2 === ""){
+    alert("Completá los goles");
+    return;
+  }
+
+  const pred = {
+    partido: `${e1} vs ${e2}`,
+    resultado: `${g1}-${g2}`
+  };
+
+  let preds = JSON.parse(localStorage.getItem("predicciones")) || [];
+  preds.push(pred);
+
+  localStorage.setItem("predicciones", JSON.stringify(preds));
+
+  alert("Predicción guardada ⚽");
+}
 </script>
 
 </body>
