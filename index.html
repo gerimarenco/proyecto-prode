@@ -2,167 +2,89 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>ProdeFootball</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+<title>Ranking</title>
 
 <style>
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:'Poppins',sans-serif;
-}
-
 body{
-  background:
-    linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)),
-    url("assets/cancha.jpg");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  min-height: 100vh;
+  font-family:sans-serif;
+  background:#111;
   color:white;
-}
-
-nav{
-  display:flex;
-  justify-content:center;
-  gap:20px;
-  padding:15px;
-  background:rgba(0,0,0,0.6);
-  flex-wrap:wrap;
-}
-
-nav a{
-  color:white;
-  text-decoration:none;
-  font-size:14px;
-}
-
-nav a:hover{
-  color:#00ff88;
-}
-
-.container{
-  max-width:700px;
-  margin:40px auto;
   padding:20px;
-  background:rgba(0,0,0,0.6);
-  border-radius:15px;
 }
 
 h1{
   text-align:center;
   color:#00ff88;
-  margin-bottom:20px;
-  font-size:22px;
 }
 
 .card{
-  background:rgba(20,20,20,0.8);
+  background:#222;
   padding:12px;
   margin:10px 0;
-  border-radius:10px;
+  border-radius:8px;
   display:flex;
   justify-content:space-between;
-  align-items:center;
-  gap:10px;
-  flex-wrap:wrap;
-  font-size:14px;
-}
-
-input{
-  width:50px;
-  padding:5px;
-  border-radius:5px;
-  border:none;
-  text-align:center;
-}
-
-button{
-  background:#00ff88;
-  border:none;
-  padding:6px 10px;
-  border-radius:8px;
-  cursor:pointer;
-  font-weight:bold;
-}
-
-button:hover{
-  background:#00cc66;
 }
 </style>
 </head>
 
 <body>
 
-<nav>
-  <a href="index.html">Inicio</a>
-  <a href="pages/partidos.html">Partidos</a>
-  <a href="pages/predicciones.html">Predicciones</a>
-  <a href="pages/clasificacion.html">Ranking</a>
-</nav>
+<h1>🏆 Ranking</h1>
 
-<div class="container">
-  <h1>⚽ PREDECÍ LOS PARTIDOS</h1>
-  <div id="partidos"></div>
-</div>
+<div id="tabla"></div>
 
 <script>
 
-// PARTIDOS + RESULTADOS REALES
-const partidos = [
-  { equipo1: "Boca", equipo2: "River", resultado: "2-1" },
-  { equipo1: "Barcelona", equipo2: "Real Madrid", resultado: "1-1" },
-  { equipo1: "PSG", equipo2: "Manchester City", resultado: "0-2" }
-];
+const tabla = document.getElementById("tabla");
+let preds = JSON.parse(localStorage.getItem("predicciones")) || [];
 
-const contenedor = document.getElementById("partidos");
+function calcularPuntos(pred, real){
+  if(pred === real) return 3;
 
-// CREAR CARDS
-partidos.forEach(p => {
-  const card = document.createElement("div");
-  card.className = "card";
+  const [g1, g2] = pred.split("-").map(Number);
+  const [r1, r2] = real.split("-").map(Number);
 
-  card.innerHTML = `
-    <span>${p.equipo1}</span>
-    <span>VS</span>
-    <span>${p.equipo2}</span>
+  const ganadorPred = g1 > g2 ? "1" : g1 < g2 ? "2" : "X";
+  const ganadorReal = r1 > r2 ? "1" : r1 < r2 ? "2" : "X";
 
-    <input type="number" min="0" placeholder="0" id="g1-${p.equipo1}">
-    <input type="number" min="0" placeholder="0" id="g2-${p.equipo2}">
+  if(ganadorPred === ganadorReal) return 1;
 
-    <button onclick="guardar('${p.equipo1}','${p.equipo2}')">Guardar</button>
-  `;
+  return 0;
+}
 
-  contenedor.appendChild(card);
-});
+// AGRUPAR POR JUGADOR
+let jugadores = {};
 
-// GUARDAR PREDICCIONES
-function guardar(e1, e2){
-  const g1 = document.getElementById(`g1-${e1}`).value;
-  const g2 = document.getElementById(`g2-${e2}`).value;
+preds.forEach(p => {
+  const puntos = calcularPuntos(p.resultado, p.real);
 
-  if(g1 === "" || g2 === ""){
-    alert("Completá los goles");
-    return;
+  if(!jugadores[p.jugador]){
+    jugadores[p.jugador] = 0;
   }
 
-  const partidoData = partidos.find(p => p.equipo1 === e1 && p.equipo2 === e2);
+  jugadores[p.jugador] += puntos;
+});
 
-  const pred = {
-    partido: `${e1} vs ${e2}`,
-    resultado: `${g1}-${g2}`,
-    real: partidoData.resultado
-  };
+// ORDENAR
+let ranking = Object.entries(jugadores)
+  .sort((a,b) => b[1] - a[1]);
 
-  let preds = JSON.parse(localStorage.getItem("predicciones")) || [];
-  preds.push(pred);
+// MOSTRAR
+if(ranking.length === 0){
+  tabla.innerHTML = "No hay datos todavía";
+} else {
+  ranking.forEach((j, i) => {
+    const div = document.createElement("div");
+    div.className = "card";
 
-  localStorage.setItem("predicciones", JSON.stringify(preds));
+    div.innerHTML = `
+      <span>#${i+1} ${j[0]}</span>
+      <span>🏆 ${j[1]} pts</span>
+    `;
 
-  alert("Predicción guardada ⚽");
+    tabla.appendChild(div);
+  });
 }
 
 </script>
