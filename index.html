@@ -31,17 +31,11 @@ nav{
   gap:20px;
   padding:15px;
   background:rgba(0,0,0,0.6);
-  flex-wrap:wrap;
 }
 
 nav a{
   color:white;
   text-decoration:none;
-  font-size:14px;
-}
-
-nav a:hover{
-  color:#00ff88;
 }
 
 .container{
@@ -52,13 +46,6 @@ nav a:hover{
   border-radius:15px;
 }
 
-h1{
-  text-align:center;
-  color:#00ff88;
-  margin-bottom:20px;
-  font-size:22px;
-}
-
 .card{
   background:rgba(20,20,20,0.8);
   padding:12px;
@@ -67,30 +54,16 @@ h1{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  gap:10px;
-  flex-wrap:wrap;
-  font-size:14px;
 }
 
 input{
   width:50px;
-  padding:5px;
-  border-radius:5px;
-  border:none;
-  text-align:center;
 }
 
 button{
   background:#00ff88;
   border:none;
-  padding:6px 10px;
-  border-radius:8px;
-  cursor:pointer;
-  font-weight:bold;
-}
-
-button:hover{
-  background:#00cc66;
+  padding:6px;
 }
 </style>
 </head>
@@ -104,7 +77,7 @@ button:hover{
 </nav>
 
 <div class="container">
-  <h1>⚽ PREDECÍ LOS PARTIDOS</h1>
+  <h1>⚽ PRODE</h1>
   <div id="partidos"></div>
 </div>
 
@@ -112,52 +85,41 @@ button:hover{
 
 const partidos = [
   { equipo1: "Boca", equipo2: "River", resultado: "2-1" },
-  { equipo1: "Barcelona", equipo2: "Real Madrid", resultado: "1-1" },
-  { equipo1: "PSG", equipo2: "Manchester City", resultado: "0-2" }
+  { equipo1: "Barcelona", equipo2: "Real Madrid", resultado: "1-1" }
 ];
 
 const contenedor = document.getElementById("partidos");
 
 partidos.forEach(p => {
-  const card = document.createElement("div");
-  card.className = "card";
+  const div = document.createElement("div");
 
-  card.innerHTML = `
-    <span>${p.equipo1}</span>
-    <span>VS</span>
-    <span>${p.equipo2}</span>
-
-    <input type="number" min="0" placeholder="0" id="g1-${p.equipo1}">
-    <input type="number" min="0" placeholder="0" id="g2-${p.equipo2}">
-
-    <button onclick="guardar('${p.equipo1}','${p.equipo2}')">Guardar</button>
+  div.innerHTML = `
+    ${p.equipo1} vs ${p.equipo2}
+    <input id="g1-${p.equipo1}">
+    <input id="g2-${p.equipo2}">
+    <button onclick="guardar('${p.equipo1}','${p.equipo2}')">OK</button>
   `;
 
-  contenedor.appendChild(card);
+  contenedor.appendChild(div);
 });
 
-function guardar(e1, e2){
+function guardar(e1,e2){
   const g1 = document.getElementById(`g1-${e1}`).value;
   const g2 = document.getElementById(`g2-${e2}`).value;
 
-  if(g1 === "" || g2 === ""){
-    alert("Completá los goles");
-    return;
-  }
-
   const pred = {
-    jugador: "Mateo",
-    partido: `${e1} vs ${e2}`,
-    resultado: `${g1}-${g2}`,
-    real: partidos.find(p => p.equipo1 === e1 && p.equipo2 === e2).resultado
+    jugador:"Mateo",
+    partido:`${e1} vs ${e2}`,
+    resultado:`${g1}-${g2}`,
+    real: partidos.find(p=>p.equipo1===e1).resultado
   };
 
-  let preds = JSON.parse(localStorage.getItem("predicciones")) || [];
-  preds.push(pred);
+  let datos = JSON.parse(localStorage.getItem("predicciones")) || [];
+  datos.push(pred);
 
-  localStorage.setItem("predicciones", JSON.stringify(preds));
+  localStorage.setItem("predicciones",JSON.stringify(datos));
 
-  alert("Predicción guardada ⚽");
+  alert("Guardado");
 }
 
 </script>
