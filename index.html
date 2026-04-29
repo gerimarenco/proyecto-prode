@@ -1,192 +1,121 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <!-- PWA / instalar como app -->
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#00c853" />
-  <!-- Android -->
-  <meta name="mobile-web-app-capable" content="yes" />
-  <!-- iOS / Safari -->
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="ProdeFootball" />
-  <link rel="apple-touch-icon" href="assets/icons/icon.svg" />
-  <title>ProdeFootball — Predicciones</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css" />
+<meta charset="UTF-8">
+<title>ProdeFootball</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Poppins',sans-serif;
+}
+
+body{
+  background:
+    linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)),
+    url("assets/cancha.jpg");
+  background-size:cover;
+  background-position:center;
+  color:white;
+}
+
+nav{
+  display:flex;
+  justify-content:center;
+  gap:30px;
+  padding:20px;
+  background:rgba(0,0,0,0.6);
+}
+
+nav a{
+  color:white;
+  text-decoration:none;
+}
+
+nav a:hover{
+  color:#00ff88;
+}
+
+.container{
+  max-width:700px;
+  margin:60px auto;
+  padding:30px;
+  background:rgba(0,0,0,0.6);
+  border-radius:15px;
+}
+
+h1{
+  text-align:center;
+  color:#00ff88;
+  margin-bottom:30px;
+}
+
+.card{
+  background:rgba(20,20,20,0.8);
+  padding:15px;
+  margin:10px 0;
+  border-radius:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+button{
+  background:#00ff88;
+  border:none;
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+button:hover{
+  background:#00cc66;
+}
+</style>
 </head>
+
 <body>
 
-  <!-- NAVBAR -->
-  <header class="header">
-    <nav class="navbar">
-      <div class="logo">
-        <div class="logo-pulse"></div>
-        ProdeFootball
-      </div>
-      <ul class="nav-links">
-        <li><a href="index.html" class="active">Inicio</a></li>
-        <li><a href="pages/partidos.html">Partidos</a></li>
-        <li><a href="pages/predicciones.html">Mis Predicciones</a></li>
-        <li><a href="pages/clasificacion.html">Ranking</a></li>
-      </ul>
-      <div class="nav-auth">
-        <button class="btn btn-outline btn-sm">Entrar</button>
-        <button class="btn btn-primary btn-sm">Registrarse</button>
-      </div>
-    </nav>
-  </header>
+<nav>
+  <a href="index.html">Inicio</a>
+  <a href="pages/partidos.html">Partidos</a>
+  <a href="pages/predicciones.html">Predicciones</a>
+  <a href="pages/clasificacion.html">Ranking</a>
+</nav>
 
-  <!-- HERO -->
-  <section class="hero">
-    <!-- campo de fútbol sutil -->
-    <svg class="hero-field" viewBox="0 0 1200 420" preserveAspectRatio="xMidYMid slice"
-         xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <rect x="6" y="6" width="1188" height="408" fill="none" stroke="white" stroke-width="2"/>
-      <line x1="600" y1="6" x2="600" y2="414" stroke="white" stroke-width="2"/>
-      <circle cx="600" cy="210" r="108" fill="none" stroke="white" stroke-width="2"/>
-      <circle cx="600" cy="210" r="4" fill="white"/>
-      <rect x="6" y="120" width="166" height="180" fill="none" stroke="white" stroke-width="1.5"/>
-      <rect x="6" y="158" width="58" height="104" fill="none" stroke="white" stroke-width="1.5"/>
-      <path d="M172 158 A 62 62 0 0 1 172 262" fill="none" stroke="white" stroke-width="1.5"/>
-      <rect x="1028" y="120" width="166" height="180" fill="none" stroke="white" stroke-width="1.5"/>
-      <rect x="1136" y="158" width="58" height="104" fill="none" stroke="white" stroke-width="1.5"/>
-      <path d="M1028 158 A 62 62 0 0 0 1028 262" fill="none" stroke="white" stroke-width="1.5"/>
-      <path d="M6 6 a 22 22 0 0 1 22 22" fill="none" stroke="white" stroke-width="1.5"/>
-      <path d="M1194 6 a 22 22 0 0 0 -22 22" fill="none" stroke="white" stroke-width="1.5"/>
-      <path d="M6 414 a 22 22 0 0 0 22 -22" fill="none" stroke="white" stroke-width="1.5"/>
-      <path d="M1194 414 a 22 22 0 0 1 -22 -22" fill="none" stroke="white" stroke-width="1.5"/>
-    </svg>
+<div class="container">
+  <h1>⚽ PREDECÍ LOS PARTIDOS</h1>
 
-    <div class="hero-inner">
-      <div class="hero-content">
-        <p class="hero-eyebrow">Temporada 2025 / 26</p>
-        <h1>Predice.<br><em>Compite.</em><br>Gana.</h1>
-        <p class="hero-desc">Pronostica resultados, suma puntos y
-          competí con tus amigos cada jornada.</p>
-        <div class="hero-actions">
-          <a href="pages/partidos.html" class="btn btn-primary btn-lg">Ver Partidos</a>
-          <a href="pages/clasificacion.html" class="btn btn-ghost btn-lg">Ver Ranking</a>
-        </div>
-      </div>
+  <div id="partidos">Cargando...</div>
+</div>
 
-    </div>
-  </section>
+<script>
+fetch("http://localhost:3000/partidos")
+.then(res => res.json())
+.then(data => {
+  const contenedor = document.getElementById("partidos");
+  contenedor.innerHTML = "";
 
-  <!-- PARTIDOS DE HOY -->
-  <section class="section">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-label">
-          <span class="dot"></span>
-          Partidos de hoy
-        </span>
-        <a href="pages/partidos.html" class="section-link">Ver todos →</a>
-      </div>
-      <div class="matches-grid" id="featured-matches">
-        <!-- skeleton -->
-        <div class="skeleton-card">
-          <div class="skel" style="width:40%;height:8px;margin-bottom:.75rem"></div>
-          <div class="skel" style="width:65%;height:12px;margin-bottom:.4rem"></div>
-          <div class="skel" style="width:50%;height:10px"></div>
-        </div>
-        <div class="skeleton-card">
-          <div class="skel" style="width:40%;height:8px;margin-bottom:.75rem"></div>
-          <div class="skel" style="width:65%;height:12px;margin-bottom:.4rem"></div>
-          <div class="skel" style="width:50%;height:10px"></div>
-        </div>
-        <div class="skeleton-card">
-          <div class="skel" style="width:40%;height:8px;margin-bottom:.75rem"></div>
-          <div class="skel" style="width:65%;height:12px;margin-bottom:.4rem"></div>
-          <div class="skel" style="width:50%;height:10px"></div>
-        </div>
-      </div>
-    </div>
-  </section>
+  data.forEach(p => {
+    const card = document.createElement("div");
+    card.className = "card";
 
-  <!-- RANKING TOP 5 -->
-  <section class="section">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-label">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
-            <path d="M6 9H4.5a2.5 2.5 0 010-5H6M18 9h1.5a2.5 2.5 0 000-5H18M4 22h16M18 2H6v7a6 6 0 0012 0V2z"/>
-          </svg>
-          Top Predictores
-        </span>
-        <a href="pages/clasificacion.html" class="section-link">Ranking completo →</a>
-      </div>
-      <div class="ranking-list" id="top-ranking">
-        <div class="ranking-row">
-          <span class="rank-pos gold-pos">1</span>
-          <div class="rank-avatar skel" style="border:none"></div>
-          <div class="rank-info">
-            <div class="skel" style="width:120px;height:11px;border-radius:4px;margin-bottom:4px"></div>
-            <div class="skel" style="width:70px;height:8px;border-radius:4px"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+    card.innerHTML = `
+      <span>${p.equipo1}</span>
+      <span>VS</span>
+      <span>${p.equipo2}</span>
+      <button>Predecir</button>
+    `;
 
-  <!-- FOOTER -->
-  <footer class="footer">
-    <svg width="14" height="14" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round">
-      <circle cx="50" cy="50" r="44"/>
-      <path d="M50 6 C37 22,37 78,50 94"/>
-      <path d="M50 6 C63 22,63 78,50 94"/>
-      <path d="M6 50 C22 37,78 37,94 50"/>
-      <path d="M6 50 C22 63,78 63,94 50"/>
-    </svg>
-    <span>&copy; 2026 ProdeFootball</span>
-  </footer>
+    contenedor.appendChild(card);
+  });
+});
+</script>
 
-  <!-- BOTTOM NAV (mobile) -->
-  <nav class="bottom-nav" aria-label="Navegacion">
-    <div class="bottom-nav__inner">
-      <a href="index.html" class="bottom-nav__item active">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
-        </svg>
-        <span>Inicio</span>
-      </a>
-      <a href="pages/partidos.html" class="bottom-nav__item">
-        <svg width="20" height="20" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round">
-          <circle cx="50" cy="50" r="44"/>
-          <path d="M50 6 C37 22,37 78,50 94"/>
-          <path d="M50 6 C63 22,63 78,50 94"/>
-          <path d="M6 50 C22 37,78 37,94 50"/>
-          <path d="M6 50 C22 63,78 63,94 50"/>
-        </svg>
-        <span>Partidos</span>
-      </a>
-      <a href="pages/predicciones.html" class="bottom-nav__item">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
-        </svg>
-        <span>Mis Preds</span>
-      </a>
-      <a href="pages/clasificacion.html" class="bottom-nav__item">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-          <path d="M6 9H4.5a2.5 2.5 0 010-5H6M18 9h1.5a2.5 2.5 0 000-5H18M4 22h16M18 2H6v7a6 6 0 0012 0V2z"/>
-        </svg>
-        <span>Ranking</span>
-      </a>
-    </div>
-  </nav>
-
-  <script src="js/mock-data.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/predictions.js"></script>
-  <script src="js/app.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./service-worker.js')
-        .catch(() => {});
-    }
-  </script>
 </body>
 </html>
