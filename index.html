@@ -21,21 +21,23 @@ body{
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  min-height: 100vh;
   color:white;
-}
 }
 
 nav{
   display:flex;
   justify-content:center;
-  gap:30px;
-  padding:20px;
+  gap:20px;
+  padding:15px;
   background:rgba(0,0,0,0.6);
+  flex-wrap:wrap;
 }
 
 nav a{
   color:white;
   text-decoration:none;
+  font-size:14px;
 }
 
 nav a:hover{
@@ -44,8 +46,8 @@ nav a:hover{
 
 .container{
   max-width:700px;
-  margin:60px auto;
-  padding:30px;
+  margin:40px auto;
+  padding:20px;
   background:rgba(0,0,0,0.6);
   border-radius:15px;
 }
@@ -53,23 +55,25 @@ nav a:hover{
 h1{
   text-align:center;
   color:#00ff88;
-  margin-bottom:30px;
+  margin-bottom:20px;
+  font-size:22px;
 }
 
 .card{
   background:rgba(20,20,20,0.8);
-  padding:15px;
+  padding:12px;
   margin:10px 0;
   border-radius:10px;
   display:flex;
   justify-content:space-between;
   align-items:center;
+  font-size:14px;
 }
 
 button{
   background:#00ff88;
   border:none;
-  padding:8px 12px;
+  padding:6px 10px;
   border-radius:8px;
   cursor:pointer;
   font-weight:bold;
@@ -97,7 +101,7 @@ button:hover{
 </div>
 
 <script>
-// DATOS DE PRUEBA (para que funcione sin backend)
+// DATOS DE PRUEBA (sin backend)
 const partidos = [
   { equipo1: "Boca", equipo2: "River" },
   { equipo1: "Barcelona", equipo2: "Real Madrid" },
