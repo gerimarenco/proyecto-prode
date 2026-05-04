@@ -1,59 +1,68 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Predicciones</title>
-
-<style>
-body{
-  font-family:sans-serif;
-  background:
-    linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.8)),
-    url("../assets/cancha.jpg");
-  background-size: cover;
-  color:white;
-  padding:20px;
-}
-
-nav{
-  display:flex;
-  justify-content:center;
-  gap:20px;
-  padding:15px;
-}
-
-.card{
-  background:#222;
-  padding:10px;
-  margin:10px 0;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Predicciones | Once Metros</title>
+  <link rel="stylesheet" href="../css/styles.css">
 </head>
-
 <body>
+  <header class="header">
+    <nav class="navbar">
+      <a class="logo" href="../index.html"><span class="logo-pulse"></span>Once Metros</a>
+      <div class="nav-links">
+        <a href="../index.html">Inicio</a>
+        <a href="partidos.html">Partidos</a>
+        <a href="predicciones.html" class="active">Predicciones</a>
+        <a href="clasificacion.html">Ranking</a>
+      </div>
+    </nav>
+  </header>
 
-<nav>
-  <a href="../index.html">Inicio</a>
-  <a href="predicciones.html">Predicciones</a>
-  <a href="clasificacion.html">Ranking</a>
-</nav>
+  <main>
+    <section class="page-header">
+      <div class="page-header-inner">
+        <div>
+          <span class="section-label"><span class="dot"></span>Mis jugadas</span>
+          <h1 class="page-title">Predicciones</h1>
+        </div>
+      </div>
+    </section>
 
-<h1>📊 Predicciones</h1>
+    <section class="section">
+      <div class="stats-bar">
+        <div class="stat-item"><strong class="stat-val" id="stat-puntos">0</strong><span class="stat-label">Puntos</span></div>
+        <div class="stat-item"><strong class="stat-val" id="stat-aciertos">0</strong><span class="stat-label">Aciertos</span></div>
+        <div class="stat-item"><strong class="stat-val" id="stat-pct">0%</strong><span class="stat-label">Efectividad</span></div>
+        <div class="stat-item"><strong class="stat-val" id="stat-racha">0</strong><span class="stat-label">Racha</span></div>
+      </div>
 
-<div id="lista"></div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="pendientes">Pendientes</button>
+        <button class="tab-btn" data-tab="historial">Historial</button>
+      </div>
 
-<script>
-const lista = document.getElementById("lista");
+      <div id="tab-pendientes" class="tab-content">
+        <div id="predictions-pending"></div>
+      </div>
+      <div id="tab-historial" class="tab-content hidden">
+        <div id="predictions-history"></div>
+      </div>
+    </section>
+  </main>
 
-let preds = JSON.parse(localStorage.getItem("predicciones")) || [];
+  <nav class="bottom-nav">
+    <div class="bottom-nav__inner">
+      <a class="bottom-nav__item" href="../index.html">Inicio</a>
+      <a class="bottom-nav__item" href="partidos.html">Partidos</a>
+      <a class="bottom-nav__item active" href="predicciones.html">Predicciones</a>
+      <a class="bottom-nav__item" href="clasificacion.html">Ranking</a>
+    </div>
+  </nav>
 
-preds.forEach(p => {
-  const div = document.createElement("div");
-  div.className = "card";
-  div.innerHTML = `${p.jugador} → ${p.partido} → ${p.resultado}`;
-  lista.appendChild(div);
-});
-</script>
-
+  <script src="../js/mock-data.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/predictions.js"></script>
+  <script src="../js/app.js"></script>
 </body>
 </html>

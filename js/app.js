@@ -161,13 +161,17 @@ function renderPredRow(pred) {
   const cls   = pred.estado === 'acierto' ? 'hit' : pred.estado === 'fallo' ? 'miss' : 'pending';
   const label = pred.estado === 'acierto' ? 'Acierto' : pred.estado === 'fallo' ? 'Fallo' : 'Pendiente';
   const pts   = pred.puntos > 0 ? `+${pred.puntos}` : '—';
-  const score = `${pred.scoreLocalPred ?? '?'}–${pred.scoreVisitantePred ?? '?'}`;
+  const score1 = pred.scoreEquipo1Pred ?? pred.scoreLocalPred ?? '?';
+  const score2 = pred.scoreEquipo2Pred ?? pred.scoreVisitantePred ?? '?';
+  const equipo1 = pred.equipo1 ?? pred.equipoLocal;
+  const equipo2 = pred.equipo2 ?? pred.equipoVisitante;
+  const score = `${score1}–${score2}`;
 
   const rowCls = pred.estado === 'acierto' ? 'is-hit' : pred.estado === 'fallo' ? 'is-miss' : '';
   return `
     <div class="pred-row ${rowCls}">
       <div class="pred-match">
-        <div class="pred-match-name">${pred.equipoLocal} vs ${pred.equipoVisitante}</div>
+        <div class="pred-match-name">${equipo1} vs ${equipo2}</div>
         <div class="pred-match-meta">${pred.liga} · Mi pred: ${score}</div>
       </div>
       <span class="pred-tag ${cls}">${label}</span>

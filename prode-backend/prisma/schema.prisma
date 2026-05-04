@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum EstadoPartido {
+  NO_COMENZO
+  EN_JUEGO
+  SUSPENDIDO
+  CANCELADO
+  TERMINADO
+}
+
+enum TipoEquipo {
+  CLUB
+  SELECCION
+}
+
+model Usuario {
+  id                   String           @id @default(cuid())
+  nombre               String
+  apellido             String?
+  username             String           @unique
+  hashClave            String
+  telefono             String?
+  hinchaDeEquipoId     String?
+  activo               Boolean          @default(true)
+  fechaCreacion        DateTime         @default(now())
+  fechaActualizacion   DateTime         @updatedAt
+  hinchaDe             Equipo?          @relation("UsuarioHinchaDe", fields: [hinchaDeEquipoId], references: [id])
+  predicciones         Prediccion[]
+  puntajes             PuntajeUsuario[]
+  torneos              Torneo[]         @relation("UsuariosTorneos")
+
+  @@index([hinchaDeEquipoId])
+}
+
+model Competencia {
+  id                   String    @id @default(cuid())
+  nombre               String
+  slug                 String    @unique
+  fechaCreacion        DateTime  @default(now())
+  fechaActualizacion   DateTime  @updatedAt
+  torneos              Torneo[]
+}
+
+model Torneo {
+  id                   String           @id @default(cuid())
+  nombre               String
+  competenciaId        String
+  activo               Boolean          @default(true)
+  fechaCreacion        DateTime         @default(now())
+  fechaActualizacion   DateTime         @updatedAt
+  competencia          Competencia      @relation(fields: [competenciaId], references: [id])
+  partidos             Partido[]
+  puntajes             PuntajeUsuario[]
+  usuarios             Usuario[]        @relation("UsuariosTorneos")
+
+  @@index([competenciaId])
+}
+
+model Equipo {
+  id                   String    @id @default(cuid())
+  nombre               String
+  nombreCompleto       String?
+  tipo                 TipoEquipo @default(CLUB)
+  slug                 String    @unique
+  abreviatura          String?
+  fechaInsercion       DateTime  @default(now())
+  fechaActualizacion   DateTime  @updatedAt
+  partidosComoEquipo1  Partido[] @relation("PartidoEquipo1")
+  partidosComoEquipo2  Partido[] @relation("PartidoEquipo2")
+  hinchas              Usuario[] @relation("UsuarioHinchaDe")
+}
+
+model Partido {
+  id                   String         @id @default(cuid())
+  torneoId             String
+  equipo1Id            String
+  equipo2Id            String
+  equipo1EsLocal       Boolean        @default(false)
+  fecha                DateTime
+  estado               EstadoPartido  @default(NO_COMENZO)
+  golesEquipo1         Int?
+  golesEquipo2         Int?
+  fechaCreacion        DateTime       @default(now())
+  fechaActualizacion   DateTime       @updatedAt
+  torneo               Torneo         @relation(fields: [torneoId], references: [id], onDelete: Cascade)
+  equipo1              Equipo         @relation("PartidoEquipo1", fields: [equipo1Id], references: [id])
+  equipo2              Equipo         @relation("PartidoEquipo2", fields: [equipo2Id], references: [id])
+  predicciones         Prediccion[]
+
+  @@index([torneoId])
+  @@index([equipo1Id])
+  @@index([equipo2Id])
+  @@index([estado])
+  @@index([fecha])
+}
+
+model Prediccion {
+  id                         String    @id @default(cuid())
+  partidoId                  String
+  usuarioId                  String
+  golesEquipo1Predicho       Int
+  golesEquipo2Predicho       Int
+  puntosOtorgados            Int?
+  fechaCreacion              DateTime  @default(now())
+  fechaActualizacion         DateTime  @updatedAt
+  partido                    Partido   @relation(fields: [partidoId], references: [id], onDelete: Cascade)
+  usuario                    Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([partidoId, usuarioId])
+  @@index([usuarioId])
+}
+
+model PuntajeUsuario {
+  id                   String   @id @default(cuid())
+  torneoId             String
+  usuarioId            String
+  puntos               Int      @default(0)
+  aciertos             Int      @default(0)
+  exactos              Int      @default(0)
+  fechaCreacion        DateTime @default(now())
+  fechaActualizacion   DateTime @updatedAt
+  torneo               Torneo   @relation(fields: [torneoId], references: [id], onDelete: Cascade)
+  usuario              Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([torneoId, usuarioId])
+  @@index([puntos])
+}

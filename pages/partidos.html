@@ -1,105 +1,57 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Partidos</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
-
-<style>
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:'Poppins',sans-serif;
-}
-
-body{
-  background:
-    linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)),
-    url("../assets/cancha.jpg");
-  background-size:cover;
-  background-position:center;
-  color:white;
-}
-
-nav{
-  display:flex;
-  justify-content:center;
-  gap:30px;
-  padding:20px;
-  background:rgba(0,0,0,0.5);
-}
-
-nav a{
-  color:white;
-  text-decoration:none;
-}
-
-nav a:hover{
-  color:#00ff88;
-}
-
-.container{
-  max-width:600px;
-  margin:80px auto;
-  padding:25px;
-  background:rgba(0,0,0,0.5);
-  border-radius:15px;
-}
-
-h1{
-  text-align:center;
-  color:#00ff88;
-  margin-bottom:20px;
-}
-
-.card{
-  background:rgba(20,20,20,0.7);
-  padding:15px;
-  margin:10px 0;
-  border-radius:10px;
-  display:flex;
-  justify-content:space-between;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Partidos | Once Metros</title>
+  <link rel="stylesheet" href="../css/styles.css">
 </head>
-
 <body>
+  <header class="header">
+    <nav class="navbar">
+      <a class="logo" href="../index.html"><span class="logo-pulse"></span>Once Metros</a>
+      <div class="nav-links">
+        <a href="../index.html">Inicio</a>
+        <a href="partidos.html" class="active">Partidos</a>
+        <a href="predicciones.html">Predicciones</a>
+        <a href="clasificacion.html">Ranking</a>
+      </div>
+    </nav>
+  </header>
 
-<nav>
-  <a href="../index.html">Inicio</a>
-  <a href="partidos.html">Partidos</a>
-  <a href="predicciones.html">Predicciones</a>
-  <a href="clasificacion.html">Ranking</a>
-</nav>
+  <main>
+    <section class="page-header">
+      <div class="page-header-inner">
+        <div>
+          <span class="section-label"><span class="dot"></span>Fixture</span>
+          <h1 class="page-title">Partidos</h1>
+        </div>
+      </div>
+    </section>
 
-<div class="container">
-  <h1>⚽ PARTIDOS</h1>
-  <div id="partidos">Cargando...</div>
-</div>
+    <section class="section">
+      <div class="filters-bar">
+        <button class="filter-chip active" data-group="liga" data-value="">Todos</button>
+        <button class="filter-chip" data-group="liga" data-value="libertadores">Libertadores</button>
+        <button class="filter-chip" data-group="liga" data-value="champions">Champions</button>
+        <button class="filter-chip" data-group="liga" data-value="laliga">La Liga</button>
+      </div>
+      <div id="matches-list" class="matches-grid"></div>
+    </section>
+  </main>
 
-<script>
-fetch("http://localhost:3000/partidos")
-.then(res => res.json())
-.then(data => {
-  const contenedor = document.getElementById("partidos");
-  contenedor.innerHTML = "";
+  <nav class="bottom-nav">
+    <div class="bottom-nav__inner">
+      <a class="bottom-nav__item" href="../index.html">Inicio</a>
+      <a class="bottom-nav__item active" href="partidos.html">Partidos</a>
+      <a class="bottom-nav__item" href="predicciones.html">Predicciones</a>
+      <a class="bottom-nav__item" href="clasificacion.html">Ranking</a>
+    </div>
+  </nav>
 
-  data.forEach(p => {
-    const card = document.createElement("div");
-    card.className = "card";
-
-    card.innerHTML = `
-      <span>${p.equipo1}</span>
-      <span>VS</span>
-      <span>${p.equipo2}</span>
-    `;
-
-    contenedor.appendChild(card);
-  });
-});
-</script>
-
+  <script src="../js/mock-data.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/predictions.js"></script>
+  <script src="../js/app.js"></script>
 </body>
 </html>

@@ -41,14 +41,21 @@ const API = (() => {
 
   // --- PREDICCIONES ---
 
-  async function savePrediction({ matchId, prediccion, scoreLocal, scoreVisitante }) {
+  async function savePrediction({ matchId, prediccion, scoreEquipo1, scoreEquipo2, scoreLocal, scoreVisitante }) {
+    const body = {
+      matchId,
+      prediccion,
+      scoreEquipo1: scoreEquipo1 ?? scoreLocal,
+      scoreEquipo2: scoreEquipo2 ?? scoreVisitante,
+    };
+
     try {
       return await request('/predicciones', {
         method: 'POST',
-        body: JSON.stringify({ matchId, prediccion, scoreLocal, scoreVisitante }),
+        body: JSON.stringify(body),
       });
     } catch {
-      return MockData.savePrediction({ matchId, prediccion, scoreLocal, scoreVisitante });
+      return MockData.savePrediction(body);
     }
   }
 

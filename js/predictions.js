@@ -8,7 +8,7 @@
 
 const Predictions = (() => {
 
-  // matchId → { local: number, visitante: number, saved: boolean }
+  // matchId -> { equipo1: number, equipo2: number, saved: boolean }
   const state = new Map();
 
   // ─── SVG paths del escudo ─────────────────────────────────────────
@@ -87,6 +87,13 @@ const Predictions = (() => {
   }
 
   // ─── Dispatcher principal ─────────────────────────────────────────
+  function equipo1De(match) { return match.equipo1 ?? match.equipoLocal; }
+  function equipo2De(match) { return match.equipo2 ?? match.equipoVisitante; }
+  function score1De(match) { return match.scoreEquipo1 ?? match.scoreLocal; }
+  function score2De(match) { return match.scoreEquipo2 ?? match.scoreVisitante; }
+  function predScore1De(pred) { return pred.scoreEquipo1 ?? pred.scoreLocal; }
+  function predScore2De(pred) { return pred.scoreEquipo2 ?? pred.scoreVisitante; }
+
   function createMatchCard(match) {
     if (match.estado === 'en-vivo')    return createLiveCard(match);
     if (match.estado === 'finalizado') return createFinishedCard(match);
@@ -113,36 +120,36 @@ const Predictions = (() => {
 
       <div class="match-card__body">
         <div class="team">
-          ${teamCrest(match.equipoLocal)}
-          <div class="team__name">${match.equipoLocal}</div>
+          ${teamCrest(equipo1De(match))}
+          <div class="team__name">${equipo1De(match)}</div>
         </div>
 
         <div class="score-input">
-          <div class="score-spinner" data-side="local">
-            <button class="spin-btn spin-inc" aria-label="Mas goles local">+</button>
+          <div class="score-spinner" data-side="equipo1">
+            <button class="spin-btn spin-inc" aria-label="Mas goles equipo 1">+</button>
             <span class="spin-value" aria-live="polite">0</span>
-            <button class="spin-btn spin-dec" aria-label="Menos goles local">−</button>
+            <button class="spin-btn spin-dec" aria-label="Menos goles equipo 1">−</button>
           </div>
           <div class="score-sep">:</div>
-          <div class="score-spinner" data-side="visitante">
-            <button class="spin-btn spin-inc" aria-label="Mas goles visitante">+</button>
+          <div class="score-spinner" data-side="equipo2">
+            <button class="spin-btn spin-inc" aria-label="Mas goles equipo 2">+</button>
             <span class="spin-value" aria-live="polite">0</span>
-            <button class="spin-btn spin-dec" aria-label="Menos goles visitante">−</button>
+            <button class="spin-btn spin-dec" aria-label="Menos goles equipo 2">−</button>
           </div>
         </div>
 
         <div class="team">
-          ${teamCrest(match.equipoVisitante)}
-          <div class="team__name">${match.equipoVisitante}</div>
+          ${teamCrest(equipo2De(match))}
+          <div class="team__name">${equipo2De(match)}</div>
         </div>
       </div>
 
-      <button class="btn-save" aria-label="Guardar prediccion para ${match.equipoLocal} vs ${match.equipoVisitante}">
+      <button class="btn-save" aria-label="Guardar prediccion para ${equipo1De(match)} vs ${equipo2De(match)}">
         Guardar prediccion
       </button>
     `;
 
-    state.set(match.id, { local: 0, visitante: 0, saved: false });
+    state.set(match.id, { equipo1: 0, equipo2: 0, saved: false });
 
     card.querySelectorAll('.score-spinner').forEach(spinner => {
       const side  = spinner.dataset.side;
@@ -177,22 +184,22 @@ const Predictions = (() => {
 
       <div class="match-card__body">
         <div class="team">
-          ${teamCrest(match.equipoLocal)}
-          <div class="team__name">${match.equipoLocal}</div>
+          ${teamCrest(equipo1De(match))}
+          <div class="team__name">${equipo1De(match)}</div>
         </div>
 
         <div class="match-score">
           <div class="match-score__nums">
-            <span class="match-score__num">${match.scoreLocal}</span>
+            <span class="match-score__num">${score1De(match)}</span>
             <span class="match-score__sep">:</span>
-            <span class="match-score__num">${match.scoreVisitante}</span>
+            <span class="match-score__num">${score2De(match)}</span>
           </div>
           <span class="match-score__minute">${match.minuto}</span>
         </div>
 
         <div class="team">
-          ${teamCrest(match.equipoVisitante)}
-          <div class="team__name">${match.equipoVisitante}</div>
+          ${teamCrest(equipo2De(match))}
+          <div class="team__name">${equipo2De(match)}</div>
         </div>
       </div>
     `;
@@ -214,7 +221,8 @@ const Predictions = (() => {
     let feedbackHtml = '';
 
     if (pred) {
-      const isExact    = pred.puntos === 5;
+      const isExact    = pred.exacto === true ||
+        (predScore1De(pred) === score1De(match) && predScore2De(pred) === score2De(match));
       const badgeCls   = isExact ? 'exact' : pred.estado === 'acierto' ? 'hit' : 'miss';
       const badgeLabel = isExact ? 'Exacto' : pred.estado === 'acierto' ? 'Acierto' : 'Fallo';
       const ptsLabel   = pred.puntos > 0 ? `+${pred.puntos} pts` : '—';
@@ -222,7 +230,7 @@ const Predictions = (() => {
       feedbackHtml = `
         <div class="match-feedback ${badgeCls}">
           <span class="match-feedback__label">Tu pred:</span>
-          <span class="match-feedback__score">${pred.scoreLocal}–${pred.scoreVisitante}</span>
+          <span class="match-feedback__score">${predScore1De(pred)}–${predScore2De(pred)}</span>
           <span class="match-feedback__badge ${badgeCls}">${badgeLabel}</span>
           <span class="match-feedback__pts ${pred.puntos > 0 ? 'positive' : ''}">${ptsLabel}</span>
         </div>
@@ -242,21 +250,21 @@ const Predictions = (() => {
 
       <div class="match-card__body">
         <div class="team">
-          ${teamCrest(match.equipoLocal)}
-          <div class="team__name">${match.equipoLocal}</div>
+          ${teamCrest(equipo1De(match))}
+          <div class="team__name">${equipo1De(match)}</div>
         </div>
 
         <div class="match-score">
           <div class="match-score__nums">
-            <span class="match-score__num">${match.scoreLocal}</span>
+            <span class="match-score__num">${score1De(match)}</span>
             <span class="match-score__sep">–</span>
-            <span class="match-score__num">${match.scoreVisitante}</span>
+            <span class="match-score__num">${score2De(match)}</span>
           </div>
         </div>
 
         <div class="team">
-          ${teamCrest(match.equipoVisitante)}
-          <div class="team__name">${match.equipoVisitante}</div>
+          ${teamCrest(equipo2De(match))}
+          <div class="team__name">${equipo2De(match)}</div>
         </div>
       </div>
 
@@ -288,12 +296,12 @@ const Predictions = (() => {
     btn.disabled    = true;
     btn.textContent = 'Guardando…';
 
-    const prediccion = s.local > s.visitante ? 'local'
-                     : s.local < s.visitante ? 'visitante'
+    const prediccion = s.equipo1 > s.equipo2 ? 'equipo1'
+                     : s.equipo1 < s.equipo2 ? 'equipo2'
                      : 'empate';
 
     try {
-      await API.savePrediction({ matchId, scoreLocal: s.local, scoreVisitante: s.visitante, prediccion });
+      await API.savePrediction({ matchId, scoreEquipo1: s.equipo1, scoreEquipo2: s.equipo2, prediccion });
     } catch (err) {
       console.warn('API no disponible, guardado localmente:', err.message);
     } finally {
@@ -307,15 +315,21 @@ const Predictions = (() => {
 
   /**
    * Calcula puntos de una predicción.
-   * +5 marcador exacto · +3 resultado correcto · 0 fallo
+   * Resultado correcto: 1 · diferencia correcta: 2 · exacto: max(3, goles totales)
    */
-  function calcularPuntos({ scoreLocalPred, scoreVisitantePred, scoreLocalReal, scoreVisitanteReal }) {
-    const predRes = scoreLocalPred > scoreVisitantePred ? 'local'
-                  : scoreLocalPred < scoreVisitantePred ? 'visitante' : 'empate';
-    const realRes = scoreLocalReal > scoreVisitanteReal ? 'local'
-                  : scoreLocalReal < scoreVisitanteReal ? 'visitante' : 'empate';
+  function calcularPuntos({ scoreEquipo1Pred, scoreEquipo2Pred, scoreEquipo1Real, scoreEquipo2Real }) {
+    const predRes = scoreEquipo1Pred > scoreEquipo2Pred ? 'equipo1'
+                  : scoreEquipo1Pred < scoreEquipo2Pred ? 'equipo2' : 'empate';
+    const realRes = scoreEquipo1Real > scoreEquipo2Real ? 'equipo1'
+                  : scoreEquipo1Real < scoreEquipo2Real ? 'equipo2' : 'empate';
     if (predRes !== realRes) return 0;
-    return (scoreLocalPred === scoreLocalReal && scoreVisitantePred === scoreVisitanteReal) ? 5 : 3;
+
+    const exacto = scoreEquipo1Pred === scoreEquipo1Real && scoreEquipo2Pred === scoreEquipo2Real;
+    if (exacto) return Math.max(3, scoreEquipo1Real + scoreEquipo2Real);
+
+    const diffPred = scoreEquipo1Pred - scoreEquipo2Pred;
+    const diffReal = scoreEquipo1Real - scoreEquipo2Real;
+    return diffPred === diffReal ? 2 : 1;
   }
 
   return { createMatchCard, calcularPuntos };
