@@ -5,12 +5,14 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  updateAuthNav();
   const page = detectPage();
   switch (page) {
     case 'home':          initHome();          break;
     case 'partidos':      initPartidos();      break;
     case 'predicciones':  initPredicciones();  break;
     case 'clasificacion': initClasificacion(); break;
+    case 'auth':          initAuth();          break;
   }
 });
 
@@ -19,7 +21,85 @@ function detectPage() {
   if (p.includes('partidos'))      return 'partidos';
   if (p.includes('predicciones'))  return 'predicciones';
   if (p.includes('clasificacion')) return 'clasificacion';
+  if (p.includes('auth'))          return 'auth';
   return 'home';
+}
+
+function updateAuthNav() {
+  const user = API.getCurrentUser();
+  document.querySelectorAll('[data-auth-link]').forEach(link => {
+    link.textContent = user ? user.nombre || user.username : 'Ingresar';
+    link.href = link.dataset.authHref || 'auth.html';
+  });
+
+  document.querySelectorAll('[data-logout]').forEach(btn => {
+    btn.classList.toggle('hidden', !user);
+    btn.addEventListener('click', () => {
+      API.logout();
+      window.location.href = authRelativePath('auth.html');
+    });
+  });
+}
+
+function authRelativePath(path) {
+  return window.location.pathname.includes('/pages/') ? path : `pages/${path}`;
+}
+
+/* --------------------------------------------------------
+   AUTH
+   -------------------------------------------------------- */
+function initAuth() {
+  if (API.getToken()) {
+    API.me().then(() => updateAuthNav()).catch(() => API.logout());
+  }
+
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+
+  document.querySelectorAll('.tab-btn').forEach(btn =>
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab))
+  );
+
+  loginForm?.addEventListener('submit', async event => {
+    event.preventDefault();
+    setAuthError('');
+
+    const form = new FormData(loginForm);
+    try {
+      await API.login({
+        identificador: form.get('identificador'),
+        password: form.get('password'),
+      });
+      window.location.href = 'partidos.html';
+    } catch (error) {
+      setAuthError(error.message);
+    }
+  });
+
+  registerForm?.addEventListener('submit', async event => {
+    event.preventDefault();
+    setAuthError('');
+
+    const form = new FormData(registerForm);
+    try {
+      await API.register({
+        username: form.get('username'),
+        nombre: form.get('nombre'),
+        email: form.get('email'),
+        password: form.get('password'),
+      });
+      window.location.href = 'partidos.html';
+    } catch (error) {
+      setAuthError(error.message);
+    }
+  });
+}
+
+function setAuthError(message) {
+  const el = document.getElementById('auth-error');
+  if (!el) return;
+  el.textContent = message;
+  el.classList.toggle('hidden', !message);
 }
 
 /* --------------------------------------------------------

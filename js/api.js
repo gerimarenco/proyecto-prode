@@ -7,11 +7,41 @@
 const API = (() => {
 
   const BASE_URL = 'http://localhost:3000/api';
+  const TOKEN_KEY = 'once_metros_token';
+  const USER_KEY = 'once_metros_user';
+
+  function getToken() {
+    return localStorage.getItem(TOKEN_KEY);
+  }
+
+  function getCurrentUser() {
+    const raw = localStorage.getItem(USER_KEY);
+    if (!raw) return null;
+    try { return JSON.parse(raw); }
+    catch { return null; }
+  }
+
+  function setSession({ token, usuario }) {
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(USER_KEY, JSON.stringify(usuario));
+  }
+
+  function clearSession() {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+  }
 
   async function request(endpoint, options = {}) {
+    const token = getToken();
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers || {}),
+    };
+
     const res = await fetch(`${BASE_URL}${endpoint}`, {
-      headers: { 'Content-Type': 'application/json' },
       ...options,
+      headers,
     });
     if (!res.ok) {
       const error = await res.json().catch(() => ({}));
@@ -42,6 +72,8 @@ const API = (() => {
   // --- PREDICCIONES ---
 
   async function savePrediction({ matchId, prediccion, scoreEquipo1, scoreEquipo2, scoreLocal, scoreVisitante }) {
+    if (!getToken()) throw new Error('Tenes que iniciar sesion para guardar predicciones');
+
     const body = {
       matchId,
       prediccion,
@@ -54,12 +86,14 @@ const API = (() => {
         method: 'POST',
         body: JSON.stringify(body),
       });
-    } catch {
-      return MockData.savePrediction(body);
+    } catch (error) {
+      throw error;
     }
   }
 
   async function getUserPredictions({ estado } = {}) {
+    if (!getToken()) return [];
+
     try {
       const params = new URLSearchParams();
       if (estado) params.set('estado', estado);
@@ -84,19 +118,46 @@ const API = (() => {
 
   // --- AUTH ---
 
-  async function register({ nombre, email, password }) {
-    return request('/auth/register', {
+  async function register({ username, nombre, email, password }) {
+    const session = await request('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ nombre, email, password }),
+      body: JSON.stringify({ username, nombre, email, password }),
     });
+    setSession(session);
+    return session;
   }
 
-  async function login({ email, password }) {
-    return request('/auth/login', {
+  async function login({ identificador, username, email, password }) {
+    const session = await request('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ identificador: identificador ?? username ?? email, password }),
     });
+    setSession(session);
+    return session;
   }
 
-  return { getMatches, getMatch, savePrediction, getUserPredictions, getLeaderboard, register, login };
+  async function me() {
+    const response = await request('/auth/me');
+    localStorage.setItem(USER_KEY, JSON.stringify(response.usuario));
+    return response.usuario;
+  }
+
+  function logout() {
+    clearSession();
+  }
+
+  return {
+    clearSession,
+    getCurrentUser,
+    getLeaderboard,
+    getMatch,
+    getMatches,
+    getToken,
+    getUserPredictions,
+    login,
+    logout,
+    me,
+    register,
+    savePrediction,
+  };
 })();

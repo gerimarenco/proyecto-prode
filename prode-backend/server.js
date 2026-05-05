@@ -3,6 +3,19 @@ require("dotenv/config");
 const express = require("express");
 const cors = require("cors");
 const { prisma } = require("./src/db");
+const {
+  getBearerToken,
+  hashPassword,
+  isValidEmail,
+  isValidPassword,
+  isValidUsername,
+  normalizeEmail,
+  normalizeUsername,
+  signAuthToken,
+  usuarioResponse,
+  verifyAuthToken,
+  verifyPassword,
+} = require("./src/auth");
 const { calcularPuntos, esPrediccionExacta } = require("./src/scoring");
 const { partidoResponse, prediccionResponse } = require("./src/serializers");
 
@@ -46,23 +59,35 @@ function parseGoles(value, fieldName) {
 }
 
 async function getUsuarioActual(req, tx = prisma) {
-  const headerUserId = req.get("x-user-id");
-  if (headerUserId) {
-    const usuario = await tx.usuario.findUnique({ where: { id: headerUserId } });
-    if (!usuario || !usuario.activo) throw httpError(401, "Usuario no valido");
-    return usuario;
+  if (req.usuario) return req.usuario;
+
+  const token = getBearerToken(req);
+  if (!token) throw httpError(401, "Tenes que iniciar sesion");
+
+  let payload;
+  try {
+    payload = verifyAuthToken(token);
+  } catch {
+    throw httpError(401, "Sesion invalida o expirada");
   }
 
-  const usuario = await tx.usuario.findFirst({
-    where: { activo: true },
-    orderBy: { fechaCreacion: "asc" },
+  const usuario = await tx.usuario.findUnique({
+    where: { id: payload.sub },
+    include: { hinchaDe: true },
   });
 
-  if (!usuario) {
-    throw httpError(500, "No hay usuarios activos. Corre el seed antes de usar la API.");
-  }
+  if (!usuario || !usuario.activo) throw httpError(401, "Usuario no valido");
 
   return usuario;
+}
+
+async function getUsuarioOpcional(req, tx = prisma) {
+  try {
+    return await getUsuarioActual(req, tx);
+  } catch (error) {
+    if (error.status === 401) return null;
+    throw error;
+  }
 }
 
 function buildPartidoWhere(query) {
@@ -130,13 +155,101 @@ app.get("/api/health", (req, res) => {
   res.json({ ok: true });
 });
 
-app.get("/api/partidos", asyncRoute(async (req, res) => {
+app.post("/api/auth/register", asyncRoute(async (req, res) => {
+  const username = normalizeUsername(req.body.username);
+  const email = normalizeEmail(req.body.email);
+  const password = req.body.password;
+  const nombre = String(req.body.nombre || username).trim();
+
+  if (!isValidUsername(username)) {
+    throw httpError(400, "El usuario debe tener 3-24 caracteres: letras, numeros, punto, guion o guion bajo");
+  }
+
+  if (!isValidEmail(email)) {
+    throw httpError(400, "El email no tiene un formato valido");
+  }
+
+  if (!isValidPassword(password)) {
+    throw httpError(400, "La clave debe tener entre 8 y 128 caracteres");
+  }
+
+  const existente = await prisma.usuario.findFirst({
+    where: {
+      OR: [
+        { username },
+        ...(email ? [{ email }] : []),
+      ],
+    },
+  });
+
+  if (existente) {
+    throw httpError(409, "Ya existe una cuenta con ese usuario o email");
+  }
+
+  const usuario = await prisma.usuario.create({
+    data: {
+      nombre,
+      username,
+      email,
+      hashClave: await hashPassword(password),
+    },
+    include: { hinchaDe: true },
+  });
+
+  res.status(201).json({
+    token: signAuthToken(usuario),
+    usuario: usuarioResponse(usuario),
+  });
+}));
+
+app.post("/api/auth/login", asyncRoute(async (req, res) => {
+  const identificador = String(req.body.identificador || req.body.username || req.body.email || "")
+    .trim()
+    .toLowerCase();
+  const password = req.body.password;
+
+  if (!identificador || !password) {
+    throw httpError(400, "Usuario/email y clave son requeridos");
+  }
+
+  const usuario = await prisma.usuario.findFirst({
+    where: {
+      OR: [
+        { username: identificador },
+        { email: identificador },
+      ],
+    },
+    include: { hinchaDe: true },
+  });
+
+  if (!usuario || !usuario.activo || !(await verifyPassword(password, usuario.hashClave))) {
+    throw httpError(401, "Credenciales invalidas");
+  }
+
+  res.json({
+    token: signAuthToken(usuario),
+    usuario: usuarioResponse(usuario),
+  });
+}));
+
+app.get("/api/auth/me", asyncRoute(async (req, res) => {
   const usuario = await getUsuarioActual(req);
+  res.json({ usuario: usuarioResponse(usuario) });
+}));
+
+app.post("/api/auth/logout", (req, res) => {
+  res.json({ ok: true });
+});
+
+app.get("/api/partidos", asyncRoute(async (req, res) => {
+  const usuario = await getUsuarioOpcional(req);
   const partidos = await prisma.partido.findMany({
     where: buildPartidoWhere(req.query),
     include: {
       ...includePartido,
-      predicciones: { where: { usuarioId: usuario.id }, take: 1 },
+      predicciones: usuario
+        ? { where: { usuarioId: usuario.id }, take: 1 }
+        : false,
     },
     orderBy: { fecha: "asc" },
   });
@@ -145,12 +258,14 @@ app.get("/api/partidos", asyncRoute(async (req, res) => {
 }));
 
 app.get("/api/partidos/:id", asyncRoute(async (req, res) => {
-  const usuario = await getUsuarioActual(req);
+  const usuario = await getUsuarioOpcional(req);
   const partido = await prisma.partido.findUnique({
     where: { id: req.params.id },
     include: {
       ...includePartido,
-      predicciones: { where: { usuarioId: usuario.id }, take: 1 },
+      predicciones: usuario
+        ? { where: { usuarioId: usuario.id }, take: 1 }
+        : false,
     },
   });
 

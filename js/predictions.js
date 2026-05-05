@@ -293,6 +293,11 @@ const Predictions = (() => {
     const s   = state.get(matchId);
     const btn = card.querySelector('.btn-save');
 
+    if (!API.getToken()) {
+      window.location.href = `${authPathPrefix()}auth.html`;
+      return;
+    }
+
     btn.disabled    = true;
     btn.textContent = 'Guardando…';
 
@@ -303,14 +308,21 @@ const Predictions = (() => {
     try {
       await API.savePrediction({ matchId, scoreEquipo1: s.equipo1, scoreEquipo2: s.equipo2, prediccion });
     } catch (err) {
-      console.warn('API no disponible, guardado localmente:', err.message);
-    } finally {
-      s.saved = true;
-      card.classList.add('pred-saved', 'just-saved');
-      btn.disabled    = false;
-      btn.textContent = '✓ Guardado';
-      setTimeout(() => card.classList.remove('just-saved'), 500);
+      btn.disabled = false;
+      btn.textContent = 'No se pudo guardar';
+      console.warn('No se pudo guardar la prediccion:', err.message);
+      return;
     }
+
+    s.saved = true;
+    card.classList.add('pred-saved', 'just-saved');
+    btn.disabled    = false;
+    btn.textContent = '✓ Guardado';
+    setTimeout(() => card.classList.remove('just-saved'), 500);
+  }
+
+  function authPathPrefix() {
+    return window.location.pathname.includes('/pages/') ? '' : 'pages/';
   }
 
   /**

@@ -2,6 +2,7 @@ require("dotenv/config");
 
 const { PrismaClient } = require("@prisma/client");
 const { PrismaPg } = require("@prisma/adapter-pg");
+const bcrypt = require("bcryptjs");
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -24,14 +25,20 @@ async function upsertEquipo(nombre, abreviatura, nombreCompleto = null, tipo = "
 }
 
 async function main() {
+  const hashClaveDemo = await bcrypt.hash("demo12345", 12);
+
   const usuario = await prisma.usuario.upsert({
     where: { username: "demo" },
-    update: {},
+    update: {
+      email: "demo@oncemetros.local",
+      hashClave: hashClaveDemo,
+    },
     create: {
       nombre: "Usuario",
       apellido: "Demo",
       username: "demo",
-      hashClave: "seed-no-usar-en-produccion",
+      email: "demo@oncemetros.local",
+      hashClave: hashClaveDemo,
     },
   });
 

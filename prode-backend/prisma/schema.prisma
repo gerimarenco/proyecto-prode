@@ -24,7 +24,10 @@ model Usuario {
   nombre               String
   apellido             String?
   username             String           @unique
-  hashClave            String
+  email                String?          @unique
+  emailVerificado      Boolean          @default(false)
+  hashClave            String?
+  googleId             String?          @unique
   telefono             String?
   hinchaDeEquipoId     String?
   activo               Boolean          @default(true)
@@ -36,6 +39,7 @@ model Usuario {
   torneos              Torneo[]         @relation("UsuariosTorneos")
 
   @@index([hinchaDeEquipoId])
+  @@index([email])
 }
 
 model Competencia {

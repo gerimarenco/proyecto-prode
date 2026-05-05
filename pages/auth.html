@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ingresar | Once Metros</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <header class="header">
+    <nav class="navbar">
+      <a class="logo" href="../index.html"><span class="logo-pulse"></span>Once Metros</a>
+      <div class="nav-links">
+        <a href="../index.html">Inicio</a>
+        <a href="partidos.html">Partidos</a>
+        <a href="predicciones.html">Predicciones</a>
+        <a href="clasificacion.html">Ranking</a>
+        <a href="auth.html" class="active" data-auth-link data-auth-href="auth.html">Ingresar</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-header">
+      <div class="page-header-inner">
+        <div>
+          <span class="section-label"><span class="dot"></span>Cuenta</span>
+          <h1 class="page-title">Ingresar</h1>
+        </div>
+        <button class="btn btn-outline hidden" data-logout>Cerrar sesion</button>
+      </div>
+    </section>
+
+    <section class="section auth-section">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="login">Ingresar</button>
+        <button class="tab-btn" data-tab="register">Crear cuenta</button>
+      </div>
+
+      <div id="auth-error" class="auth-error hidden"></div>
+
+      <div id="tab-login" class="tab-content">
+        <form id="login-form" class="auth-form">
+          <label>
+            Usuario o email
+            <input name="identificador" autocomplete="username" required>
+          </label>
+          <label>
+            Clave
+            <input name="password" type="password" autocomplete="current-password" required>
+          </label>
+          <button class="btn btn-primary btn-lg" type="submit">Ingresar</button>
+        </form>
+      </div>
+
+      <div id="tab-register" class="tab-content hidden">
+        <form id="register-form" class="auth-form">
+          <label>
+            Usuario
+            <input name="username" autocomplete="username" minlength="3" maxlength="24" required>
+          </label>
+          <label>
+            Nombre para mostrar
+            <input name="nombre" autocomplete="nickname">
+          </label>
+          <label>
+            Email
+            <input name="email" type="email" autocomplete="email">
+          </label>
+          <label>
+            Clave
+            <input name="password" type="password" autocomplete="new-password" minlength="8" required>
+          </label>
+          <button class="btn btn-primary btn-lg" type="submit">Crear cuenta</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <div class="bottom-nav__inner">
+      <a class="bottom-nav__item" href="../index.html">Inicio</a>
+      <a class="bottom-nav__item" href="partidos.html">Partidos</a>
+      <a class="bottom-nav__item" href="predicciones.html">Predicciones</a>
+      <a class="bottom-nav__item" href="clasificacion.html">Ranking</a>
+      <a class="bottom-nav__item active" href="auth.html" data-auth-link data-auth-href="auth.html">Ingresar</a>
+    </div>
+  </nav>
+
+  <script src="../js/mock-data.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/predictions.js"></script>
+  <script src="../js/app.js"></script>
+</body>
+</html>

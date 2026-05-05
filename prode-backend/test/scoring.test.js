@@ -29,4 +29,5 @@ test("otorga maximo entre 3 y goles totales cuando el resultado es exacto", () =
 test("otorga 0 puntos si falla ganador o empate", () => {
   assert.equal(puntos([1, 0], [0, 2]), 0);
   assert.equal(puntos([1, 1], [2, 1]), 0);
+  assert.equal(puntos([0, 1], [666, 666]), 0);
 });
