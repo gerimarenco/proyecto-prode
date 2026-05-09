@@ -1,10 +1,21 @@
 require("dotenv/config");
 
-const { PrismaClient } = require("@prisma/client");
-const { PrismaPg } = require("@prisma/adapter-pg");
 const bcrypt = require("bcryptjs");
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const { PrismaClient } = require("@prisma/client");
+const { PrismaPg } = require("@prisma/adapter-pg");
+
+const competenciasData = require("./seed/data/competencias");
+const equiposData = require("./seed/data/equipos");
+
+const partidosLibertadores = require("./seed/data/partidos-libertadores");
+const partidosLiga = require("./seed/data/partidos-liga-argentina");
+const partidosMundial = require("./seed/data/partidos-mundial");
+
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL,
+});
+
 const prisma = new PrismaClient({ adapter });
 
 function slugify(value) {
@@ -16,23 +27,33 @@ function slugify(value) {
     .replace(/(^-|-$)/g, "");
 }
 
-async function upsertEquipo(nombre, abreviatura, nombreCompleto = null, tipo = "CLUB") {
+async function upsertEquipo(nombre, abreviatura, nombreCompleto, tipo) {
   return prisma.equipo.upsert({
     where: { slug: slugify(nombre) },
-    update: { nombre, nombreCompleto, tipo, abreviatura },
-    create: { nombre, nombreCompleto, tipo, slug: slugify(nombre), abreviatura },
+    update: {
+      nombre,
+      abreviatura,
+      nombreCompleto,
+      tipo,
+    },
+    create: {
+      nombre,
+      abreviatura,
+      nombreCompleto,
+      tipo,
+      slug: slugify(nombre),
+    },
   });
 }
 
 async function main() {
+  console.log("Seed iniciado");
+
   const hashClaveDemo = await bcrypt.hash("demo12345", 12);
 
   const usuario = await prisma.usuario.upsert({
     where: { username: "demo" },
-    update: {
-      email: "demo@oncemetros.local",
-      hashClave: hashClaveDemo,
-    },
+    update: {},
     create: {
       nombre: "Usuario",
       apellido: "Demo",
@@ -42,78 +63,68 @@ async function main() {
     },
   });
 
-  const competencia = await prisma.competencia.upsert({
-    where: { slug: "copa-libertadores" },
-    update: { nombre: "Copa Libertadores" },
-    create: { nombre: "Copa Libertadores", slug: "copa-libertadores" },
-  });
+  // COMPETENCIAS
 
-  const torneo = await prisma.torneo.upsert({
-    where: { id: "torneo-demo-libertadores-2026" },
-    update: { nombre: "Libertadores Amigos 2026", competenciaId: competencia.id },
-    create: {
-      id: "torneo-demo-libertadores-2026",
-      nombre: "Libertadores Amigos 2026",
-      competenciaId: competencia.id,
-    },
-  });
+  const competencias = {};
 
-  await prisma.torneo.update({
-    where: { id: torneo.id },
-    data: {
-      usuarios: { connect: { id: usuario.id } },
-    },
-  });
+  for (const comp of competenciasData) {
+    competencias[comp.slug] = await prisma.competencia.upsert({
+      where: { slug: comp.slug },
+      update: { nombre: comp.nombre },
+      create: comp,
+    });
+  }
+
+  // EQUIPOS
 
   const equipos = {};
-  for (const [nombre, abbr, nombreCompleto, tipo] of [
-    ["Boca", "BOC", "Club Atletico Boca Juniors", "CLUB"],
-    ["River", "RIV", "Club Atletico River Plate", "CLUB"],
-    ["Flamengo", "FLA", "Clube de Regatas do Flamengo", "CLUB"],
-    ["Palmeiras", "PAL", "Sociedade Esportiva Palmeiras", "CLUB"],
-  ]) {
-    equipos[nombre] = await upsertEquipo(nombre, abbr, nombreCompleto, tipo);
+
+  for (const equipo of equiposData) {
+    equipos[equipo[0]] = await upsertEquipo(...equipo);
   }
 
   await prisma.usuario.update({
     where: { id: usuario.id },
-    data: { hinchaDe: { connect: { id: equipos["Boca"].id } } },
+    data: {
+      hinchaDe: {
+        connect: {
+          id: equipos["Boca Juniors"].id,
+        },
+      },
+    },
   });
 
+  // PARTIDOS
+
   const partidos = [
-    {
-      id: "partido-demo-1",
-      equipo1: "Boca",
-      equipo2: "Flamengo",
-      fecha: "2026-05-10T22:00:00.000Z",
-      equipo1EsLocal: false,
-    },
-    {
-      id: "partido-demo-2",
-      equipo1: "River",
-      equipo2: "Palmeiras",
-      fecha: "2026-05-11T00:30:00.000Z",
-      equipo1EsLocal: false,
-    },
+    ...partidosLibertadores,
+    ...partidosLiga,
+    ...partidosMundial,
   ];
 
   for (const partido of partidos) {
     await prisma.partido.upsert({
       where: { id: partido.id },
       update: {
-        torneoId: torneo.id,
+        competenciaId: competencias[partido.competenciaSlug].id,
         equipo1Id: equipos[partido.equipo1].id,
         equipo2Id: equipos[partido.equipo2].id,
-        equipo1EsLocal: partido.equipo1EsLocal,
         fecha: new Date(partido.fecha),
+        estado: partido.estado,
+        golesEquipo1: partido.golesEquipo1,
+        golesEquipo2: partido.golesEquipo2,
+        equipo1EsLocal: partido.equipo1EsLocal,
       },
       create: {
         id: partido.id,
-        torneoId: torneo.id,
+        competenciaId: competencias[partido.competenciaSlug].id,
         equipo1Id: equipos[partido.equipo1].id,
         equipo2Id: equipos[partido.equipo2].id,
-        equipo1EsLocal: partido.equipo1EsLocal,
         fecha: new Date(partido.fecha),
+        estado: partido.estado,
+        golesEquipo1: partido.golesEquipo1,
+        golesEquipo2: partido.golesEquipo2,
+        equipo1EsLocal: partido.equipo1EsLocal,
       },
     });
   }
