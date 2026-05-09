@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { calcularPuntos } = require("../src/scoring");
+const { calcularPuntos } = require("../src/services/scoring.service");
 
 function puntos(predicho, real) {
   return calcularPuntos({

@@ -20,6 +20,11 @@ enum TipoEquipo {
   SELECCION
 }
 
+enum RolUsuario {
+  USER
+  ADMIN
+}
+
 model Usuario {
   id                   String           @id @default(cuid())
   nombre               String
@@ -31,29 +36,29 @@ model Usuario {
   googleId             String?          @unique
   telefono             String?
   hinchaDeEquipoId     String?
+  rol                  RolUsuario       @default(USER)
   activo               Boolean          @default(true)
   fechaCreacion        DateTime         @default(now())
   fechaActualizacion   DateTime         @updatedAt
   hinchaDe             Equipo?          @relation("UsuarioHinchaDe", fields: [hinchaDeEquipoId], references: [id])
   predicciones         Prediccion[]
-  puntajes             PuntajeUsuario[]
-  torneos              Torneo[]         @relation("UsuariosTorneos")
+  torneosDeAmigos      TorneoDeAmigos[] @relation("UsuariosTorneosDeAmigos")
 
   @@index([hinchaDeEquipoId])
   @@index([email])
 }
 
 model Competencia {
-  id                   String    @id @default(cuid())
+  id                   String           @id @default(cuid())
   nombre               String
-  slug                 String    @unique
-  fechaCreacion        DateTime  @default(now())
-  fechaActualizacion   DateTime  @updatedAt
+  slug                 String           @unique
+  fechaCreacion        DateTime         @default(now())
+  fechaActualizacion   DateTime         @updatedAt
   partidos             Partido[]
-  torneos              Torneo[]
+  torneosDeAmigos      TorneoDeAmigos[]
 }
 
-model Torneo {
+model TorneoDeAmigos {
   id                   String           @id @default(cuid())
   nombre               String
   competenciaId        String
@@ -61,8 +66,7 @@ model Torneo {
   fechaCreacion        DateTime         @default(now())
   fechaActualizacion   DateTime         @updatedAt
   competencia          Competencia      @relation(fields: [competenciaId], references: [id])
-  puntajes             PuntajeUsuario[]
-  usuarios             Usuario[]        @relation("UsuariosTorneos")
+  usuarios             Usuario[]        @relation("UsuariosTorneosDeAmigos")
 
   @@index([competenciaId])
 }
@@ -121,18 +125,3 @@ model Prediccion {
   @@index([usuarioId])
 }
 
-model PuntajeUsuario {
-  id                   String   @id @default(cuid())
-  torneoId             String
-  usuarioId            String
-  puntos               Int      @default(0)
-  aciertos             Int      @default(0)
-  exactos              Int      @default(0)
-  fechaCreacion        DateTime @default(now())
-  fechaActualizacion   DateTime @updatedAt
-  torneo               Torneo   @relation(fields: [torneoId], references: [id], onDelete: Cascade)
-  usuario              Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-
-  @@unique([torneoId, usuarioId])
-  @@index([puntos])
-}

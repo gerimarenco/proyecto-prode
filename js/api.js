@@ -50,15 +50,22 @@ const API = (() => {
     return res.json();
   }
 
+  function buildQuery(params = {}) {
+    const search = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined && value !== null && value !== '') {
+        search.set(key, value);
+      }
+    }
+    const qs = search.toString();
+    return qs ? `?${qs}` : '';
+  }
+
   // --- PARTIDOS ---
 
-  async function getMatches({ liga, fecha, estado } = {}) {
+  async function getMatches({ liga, fecha, estado, competenciaId } = {}) {
     try {
-      const params = new URLSearchParams();
-      if (liga)   params.set('liga', liga);
-      if (fecha)  params.set('fecha', fecha);
-      if (estado) params.set('estado', estado);
-      return await request(`/partidos?${params}`);
+      return await request(`/partidos${buildQuery({ liga, fecha, estado, competenciaId })}`);
     } catch {
       return MockData.getMatches({ liga, fecha, estado });
     }
@@ -69,51 +76,95 @@ const API = (() => {
     catch { return null; }
   }
 
+  async function cerrarPartido(id, { golesEquipo1, golesEquipo2 }) {
+    return request(`/partidos/${id}/cerrar`, {
+      method: 'POST',
+      body: JSON.stringify({ golesEquipo1, golesEquipo2 }),
+    });
+  }
+
   // --- PREDICCIONES ---
 
-  async function savePrediction({ matchId, prediccion, scoreEquipo1, scoreEquipo2, scoreLocal, scoreVisitante }) {
+  async function savePrediction({ matchId, scoreEquipo1, scoreEquipo2, scoreLocal, scoreVisitante }) {
     if (!getToken()) throw new Error('Tenes que iniciar sesion para guardar predicciones');
 
-    const body = {
-      matchId,
-      prediccion,
-      scoreEquipo1: scoreEquipo1 ?? scoreLocal,
-      scoreEquipo2: scoreEquipo2 ?? scoreVisitante,
-    };
-
-    try {
-      return await request('/predicciones', {
-        method: 'POST',
-        body: JSON.stringify(body),
-      });
-    } catch (error) {
-      throw error;
-    }
+    return request('/predicciones', {
+      method: 'POST',
+      body: JSON.stringify({
+        matchId,
+        scoreEquipo1: scoreEquipo1 ?? scoreLocal,
+        scoreEquipo2: scoreEquipo2 ?? scoreVisitante,
+      }),
+    });
   }
 
-  async function getUserPredictions({ estado } = {}) {
-    if (!getToken()) return [];
-
-    try {
-      const params = new URLSearchParams();
-      if (estado) params.set('estado', estado);
-      return await request(`/predicciones/me?${params}`);
-    } catch {
-      return MockData.getUserPredictions({ estado });
-    }
+  async function updatePrediction(id, { scoreEquipo1, scoreEquipo2 }) {
+    return request(`/predicciones/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ scoreEquipo1, scoreEquipo2 }),
+    });
   }
 
-  // --- CLASIFICACION ---
+  // --- USUARIOS ---
 
-  async function getLeaderboard({ periodo, liga, limit = 50 } = {}) {
-    try {
-      const params = new URLSearchParams({ limit });
-      if (periodo) params.set('periodo', periodo);
-      if (liga)    params.set('liga', liga);
-      return await request(`/clasificacion?${params}`);
-    } catch {
-      return MockData.getLeaderboard({ periodo, liga, limit });
-    }
+  async function getUsuario(id) {
+    return request(`/usuarios/${id}`);
+  }
+
+  async function updateUsuario(id, data) {
+    return request(`/usuarios/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // --- COMPETENCIAS ---
+
+  async function getCompetencias() {
+    return request('/competencias');
+  }
+
+  async function getCompetencia(id) {
+    return request(`/competencias/${id}`);
+  }
+
+  // --- EQUIPOS ---
+
+  async function getEquipos({ tipo, q } = {}) {
+    return request(`/equipos${buildQuery({ tipo, q })}`);
+  }
+
+  async function getEquipo(id) {
+    return request(`/equipos/${id}`);
+  }
+
+  // --- TORNEOS DE AMIGOS ---
+
+  async function getTorneosDeAmigos({ mias } = {}) {
+    return request(`/torneos${buildQuery({ mias })}`);
+  }
+
+  async function getTorneoDeAmigos(id) {
+    return request(`/torneos/${id}`);
+  }
+
+  async function createTorneoDeAmigos({ nombre, competenciaId }) {
+    return request('/torneos', {
+      method: 'POST',
+      body: JSON.stringify({ nombre, competenciaId }),
+    });
+  }
+
+  async function unirseATorneoDeAmigos(id) {
+    return request(`/torneos/${id}/unirse`, { method: 'POST' });
+  }
+
+  async function getTablaTorneoDeAmigos(id) {
+    return request(`/torneos/${id}/tabla`);
+  }
+
+  async function getMisPrediccionesEnTorneoDeAmigos(id) {
+    return request(`/torneos/${id}/mis-predicciones`);
   }
 
   // --- AUTH ---
@@ -146,18 +197,54 @@ const API = (() => {
     clearSession();
   }
 
+  // --- DEPRECADOS (cae a MockData) ---
+  // El backend ya no expone /clasificacion ni /predicciones/me globales:
+  // ahora son por TorneoDeAmigos. Estas funciones quedan como compat:
+  // tiran 404 y caen al mock para no romper la UI vieja.
+
+  async function getLeaderboard({ periodo, liga, limit = 50 } = {}) {
+    try {
+      return await request(`/clasificacion${buildQuery({ periodo, liga, limit })}`);
+    } catch {
+      return MockData.getLeaderboard({ periodo, liga, limit });
+    }
+  }
+
+  async function getUserPredictions({ estado } = {}) {
+    if (!getToken()) return [];
+    try {
+      return await request(`/predicciones/me${buildQuery({ estado })}`);
+    } catch {
+      return MockData.getUserPredictions({ estado });
+    }
+  }
+
   return {
+    cerrarPartido,
     clearSession,
+    createTorneoDeAmigos,
+    getCompetencia,
+    getCompetencias,
     getCurrentUser,
+    getEquipo,
+    getEquipos,
     getLeaderboard,
     getMatch,
     getMatches,
+    getMisPrediccionesEnTorneoDeAmigos,
+    getTablaTorneoDeAmigos,
     getToken,
+    getTorneoDeAmigos,
+    getTorneosDeAmigos,
     getUserPredictions,
+    getUsuario,
     login,
     logout,
     me,
     register,
     savePrediction,
+    unirseATorneoDeAmigos,
+    updatePrediction,
+    updateUsuario,
   };
 })();
