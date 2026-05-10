@@ -1,7 +1,6 @@
 /**
  * api.js
- * Capa de acceso a datos. Conecta con el backend cuando está disponible;
- * si no, cae automáticamente en MockData (mock-data.js).
+ * Capa de acceso a datos. Todas las pantallas leen del backend.
  */
 
 const API = (() => {
@@ -9,6 +8,8 @@ const API = (() => {
   const BASE_URL = 'http://localhost:3000/api';
   const TOKEN_KEY = 'once_metros_token';
   const USER_KEY = 'once_metros_user';
+  const SELECTED_COMPETENCIA_KEY = 'once_metros_selected_competencia';
+  const SELECTED_TORNEO_KEY = 'once_metros_selected_torneo';
 
   function getToken() {
     return localStorage.getItem(TOKEN_KEY);
@@ -29,6 +30,49 @@ const API = (() => {
   function clearSession() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(SELECTED_TORNEO_KEY);
+  }
+
+  function getSelectedCompetencia() {
+    return readStoredJson(SELECTED_COMPETENCIA_KEY);
+  }
+
+  function setSelectedCompetencia(competencia) {
+    if (!competencia) {
+      localStorage.removeItem(SELECTED_COMPETENCIA_KEY);
+      localStorage.removeItem(SELECTED_TORNEO_KEY);
+      return;
+    }
+    localStorage.setItem(SELECTED_COMPETENCIA_KEY, JSON.stringify(competencia));
+    const torneo = getSelectedTorneo();
+    if (torneo?.competenciaId && torneo.competenciaId !== competencia.id) {
+      localStorage.removeItem(SELECTED_TORNEO_KEY);
+    }
+  }
+
+  function getSelectedTorneo() {
+    return readStoredJson(SELECTED_TORNEO_KEY);
+  }
+
+  function setSelectedTorneo(torneo) {
+    if (!torneo) {
+      localStorage.removeItem(SELECTED_TORNEO_KEY);
+      return;
+    }
+    localStorage.setItem(SELECTED_TORNEO_KEY, JSON.stringify(torneo));
+    if (torneo.competencia) {
+      setSelectedCompetencia(torneo.competencia);
+    }
+  }
+
+  function readStoredJson(key) {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    try { return JSON.parse(raw); }
+    catch {
+      localStorage.removeItem(key);
+      return null;
+    }
   }
 
   async function request(endpoint, options = {}) {
@@ -39,10 +83,16 @@ const API = (() => {
       ...(options.headers || {}),
     };
 
-    const res = await fetch(`${BASE_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
+    let res;
+    try {
+      res = await fetch(`${BASE_URL}${endpoint}`, {
+        ...options,
+        headers,
+      });
+    } catch {
+      throw new Error('No se pudo conectar con el backend. Revisá que el servidor esté levantado.');
+    }
+
     if (!res.ok) {
       const error = await res.json().catch(() => ({}));
       throw new Error(error.message || `Error ${res.status}`);
@@ -64,16 +114,11 @@ const API = (() => {
   // --- PARTIDOS ---
 
   async function getMatches({ liga, fecha, estado, competenciaId } = {}) {
-    try {
-      return await request(`/partidos${buildQuery({ liga, fecha, estado, competenciaId })}`);
-    } catch {
-      return MockData.getMatches({ liga, fecha, estado });
-    }
+    return request(`/partidos${buildQuery({ liga, fecha, estado, competenciaId })}`);
   }
 
   async function getMatch(id) {
-    try { return await request(`/partidos/${id}`); }
-    catch { return null; }
+    return request(`/partidos/${id}`);
   }
 
   async function cerrarPartido(id, { golesEquipo1, golesEquipo2 }) {
@@ -86,7 +131,7 @@ const API = (() => {
   // --- PREDICCIONES ---
 
   async function savePrediction({ matchId, scoreEquipo1, scoreEquipo2, scoreLocal, scoreVisitante }) {
-    if (!getToken()) throw new Error('Tenes que iniciar sesion para guardar predicciones');
+    if (!getToken()) throw new Error('Tenés que iniciar sesión para guardar predicciones');
 
     return request('/predicciones', {
       method: 'POST',
@@ -140,8 +185,12 @@ const API = (() => {
 
   // --- TORNEOS DE AMIGOS ---
 
-  async function getTorneosDeAmigos({ mias } = {}) {
-    return request(`/torneos${buildQuery({ mias })}`);
+  async function getTorneosDeAmigos({ mias, competenciaId } = {}) {
+    if (mias && !getToken()) throw new Error('Tenés que iniciar sesión para ver tus torneos.');
+    const torneos = await request(`/torneos${buildQuery({ mias })}`);
+    return competenciaId
+      ? torneos.filter(t => t.competenciaId === competenciaId)
+      : torneos;
   }
 
   async function getTorneoDeAmigos(id) {
@@ -197,26 +246,25 @@ const API = (() => {
     clearSession();
   }
 
-  // --- DEPRECADOS (cae a MockData) ---
-  // El backend ya no expone /clasificacion ni /predicciones/me globales:
-  // ahora son por TorneoDeAmigos. Estas funciones quedan como compat:
-  // tiran 404 y caen al mock para no romper la UI vieja.
-
-  async function getLeaderboard({ periodo, liga, limit = 50 } = {}) {
-    try {
-      return await request(`/clasificacion${buildQuery({ periodo, liga, limit })}`);
-    } catch {
-      return MockData.getLeaderboard({ periodo, liga, limit });
-    }
+  async function getLeaderboard({ torneoId, limit = 50 } = {}) {
+    const selected = getSelectedTorneo();
+    const id = torneoId || selected?.id;
+    if (!id) throw new Error('Elegí un Torneo de Amigos para ver el ranking.');
+    const tabla = await getTablaTorneoDeAmigos(id);
+    return tabla.slice(0, limit).map(entry => ({
+      ...entry,
+      nombre: entry.usuario?.nombre || entry.usuario?.username || 'Usuario',
+    }));
   }
 
-  async function getUserPredictions({ estado } = {}) {
-    if (!getToken()) return [];
-    try {
-      return await request(`/predicciones/me${buildQuery({ estado })}`);
-    } catch {
-      return MockData.getUserPredictions({ estado });
-    }
+  async function getUserPredictions({ estado, torneoId } = {}) {
+    const selected = getSelectedTorneo();
+    const id = torneoId || selected?.id;
+    if (!id) throw new Error('Elegí un Torneo de Amigos para ver tus predicciones.');
+    const predicciones = await getMisPrediccionesEnTorneoDeAmigos(id);
+    return estado
+      ? predicciones.filter(p => p.estado === estado)
+      : predicciones;
   }
 
   return {
@@ -232,6 +280,8 @@ const API = (() => {
     getMatch,
     getMatches,
     getMisPrediccionesEnTorneoDeAmigos,
+    getSelectedCompetencia,
+    getSelectedTorneo,
     getTablaTorneoDeAmigos,
     getToken,
     getTorneoDeAmigos,
@@ -243,6 +293,8 @@ const API = (() => {
     me,
     register,
     savePrediction,
+    setSelectedCompetencia,
+    setSelectedTorneo,
     unirseATorneoDeAmigos,
     updatePrediction,
     updateUsuario,

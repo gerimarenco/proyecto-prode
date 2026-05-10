@@ -1,5 +1,6 @@
 const torneosService = require("../services/torneos.service");
 const prediccionesService = require("../services/predicciones.service");
+const { httpError } = require("../utils/httpError");
 const {
   tablaEntryResponse,
   torneoDeAmigosResponse,
@@ -11,7 +12,10 @@ function torneoToJson(torneo) {
 }
 
 async function list(req, res) {
-  const usuarioId = req.query.mias === "true" && req.usuario ? req.usuario.id : undefined;
+  if (req.query.mias === "true" && !req.usuario) {
+    throw httpError(401, "Tenés que iniciar sesión para ver tus torneos");
+  }
+  const usuarioId = req.query.mias === "true" ? req.usuario.id : undefined;
   const torneos = await torneosService.list({ usuarioId });
   res.json(torneos.map(torneoToJson));
 }

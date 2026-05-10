@@ -1,10 +1,10 @@
 /**
  * Service Worker — ProdeFootball
  * Cachea el shell de la app para uso offline.
- * Las llamadas a la API van siempre a la red (network-first).
+ * Las llamadas a la API van siempre a la red.
  */
 
-const CACHE = 'prodefootball-v1';
+const CACHE = 'prodefootball-v3';
 
 const SHELL = [
   './index.html',
@@ -39,12 +39,10 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Estrategia: API → network-first; resto → cache-first
+// Estrategia: API siempre red; resto cache-first
 self.addEventListener('fetch', event => {
   if (event.request.url.includes('/api/')) {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
-    );
+    event.respondWith(fetch(event.request));
     return;
   }
   event.respondWith(

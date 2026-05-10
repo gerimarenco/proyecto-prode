@@ -11,30 +11,29 @@
     <nav class="navbar">
       <a class="logo" href="../index.html"><span class="logo-pulse"></span>Once Metros</a>
       <div class="nav-links">
-        <a href="../index.html">Inicio</a>
-        <a href="partidos.html">Partidos</a>
-        <a href="predicciones.html">Predicciones</a>
-        <a href="clasificacion.html" class="active">Ranking</a>
-        <a href="auth.html" data-auth-link data-auth-href="auth.html">Ingresar</a>
+        <a href="../index.html">Competencias</a>
+        <a href="partidos.html">Predicciones</a>
+        <a href="../index.html#torneos" class="active">Torneos</a>
       </div>
     </nav>
   </header>
 
   <main>
-    <section class="page-header">
+    <section class="page-header page-header--compact">
       <div class="page-header-inner">
+        <a class="icon-btn" href="../index.html#torneos" aria-label="Volver">‹</a>
         <div>
-          <span class="section-label"><span class="dot"></span>Tabla general</span>
-          <h1 class="page-title">Ranking</h1>
+          <span id="torneo-subtitle" class="section-label"><span class="dot"></span>Torneo de Amigos</span>
+          <h1 id="torneo-title" class="page-title">Ranking</h1>
         </div>
+        <button class="btn btn-outline btn-sm" type="button">Invitar</button>
       </div>
     </section>
 
     <section class="section">
-      <div class="filters-bar">
-        <button class="filter-chip active" data-group="periodo" data-value="temporada">Temporada</button>
-        <button class="filter-chip" data-group="periodo" data-value="mes">Mes</button>
-        <button class="filter-chip" data-group="periodo" data-value="semana">Semana</button>
+      <div class="invite-placeholder">
+        <strong>Invitaciones</strong>
+        <span>Pronto vas a poder compartir un enlace para sumar participantes.</span>
       </div>
       <div id="podium" class="podium"></div>
       <div id="ranking-list" class="ranking-list"></div>
@@ -43,15 +42,12 @@
 
   <nav class="bottom-nav">
     <div class="bottom-nav__inner">
-      <a class="bottom-nav__item" href="../index.html">Inicio</a>
-      <a class="bottom-nav__item" href="partidos.html">Partidos</a>
-      <a class="bottom-nav__item" href="predicciones.html">Predicciones</a>
-      <a class="bottom-nav__item active" href="clasificacion.html">Ranking</a>
-      <a class="bottom-nav__item" href="auth.html" data-auth-link data-auth-href="auth.html">Ingresar</a>
+      <a class="bottom-nav__item" href="../index.html">Competencias</a>
+      <a class="bottom-nav__item" href="partidos.html">Predicciones</a>
+      <a class="bottom-nav__item active" href="../index.html#torneos">Torneos</a>
     </div>
   </nav>
 
-  <script src="../js/mock-data.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/predictions.js"></script>
   <script src="../js/app.js"></script>

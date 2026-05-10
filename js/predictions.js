@@ -24,7 +24,7 @@ const Predictions = (() => {
     const data = (typeof TEAM_COLORS !== 'undefined') && TEAM_COLORS[teamName];
 
     if (!data) {
-      // Fallback: color determinista + iniciales
+      // Color determinista + iniciales cuando no hay escudo configurado.
       const hue  = nameToHue(teamName);
       const abbr = abbrev(teamName);
       return svgShield(`hsl(${hue},52%,28%)`, null, abbr);
@@ -76,7 +76,7 @@ const Predictions = (() => {
     return Math.abs(h) % 360;
   }
 
-  /** Iniciales del equipo (máx 3 chars) — solo para fallback */
+  /** Iniciales del equipo (máx 3 chars) */
   function abbrev(name) {
     return name.split(' ')
       .filter(w => w.length > 1)
@@ -105,6 +105,10 @@ const Predictions = (() => {
     const card = document.createElement('div');
     card.classList.add('match-card');
     card.dataset.matchId = match.id;
+    const initialEquipo1 = match.userPred?.scoreEquipo1 ?? 0;
+    const initialEquipo2 = match.userPred?.scoreEquipo2 ?? 0;
+    const hasSavedPrediction = Boolean(match.userPred);
+    if (hasSavedPrediction) card.classList.add('pred-saved');
 
     const fecha = new Date(match.fecha).toLocaleString('es-ES', {
       weekday: 'short', day: 'numeric', month: 'short',
@@ -127,13 +131,13 @@ const Predictions = (() => {
         <div class="score-input">
           <div class="score-spinner" data-side="equipo1">
             <button class="spin-btn spin-inc" aria-label="Mas goles equipo 1">+</button>
-            <span class="spin-value" aria-live="polite">0</span>
+            <span class="spin-value" aria-live="polite">${initialEquipo1}</span>
             <button class="spin-btn spin-dec" aria-label="Menos goles equipo 1">−</button>
           </div>
           <div class="score-sep">:</div>
           <div class="score-spinner" data-side="equipo2">
             <button class="spin-btn spin-inc" aria-label="Mas goles equipo 2">+</button>
-            <span class="spin-value" aria-live="polite">0</span>
+            <span class="spin-value" aria-live="polite">${initialEquipo2}</span>
             <button class="spin-btn spin-dec" aria-label="Menos goles equipo 2">−</button>
           </div>
         </div>
@@ -144,12 +148,12 @@ const Predictions = (() => {
         </div>
       </div>
 
-      <button class="btn-save" aria-label="Guardar prediccion para ${equipo1De(match)} vs ${equipo2De(match)}">
-        Guardar prediccion
+      <button class="btn-save" aria-label="Guardar predicción para ${equipo1De(match)} vs ${equipo2De(match)}">
+        ${hasSavedPrediction ? 'Actualizar predicción' : 'Guardar predicción'}
       </button>
     `;
 
-    state.set(match.id, { equipo1: 0, equipo2: 0, saved: false });
+    state.set(match.id, { equipo1: initialEquipo1, equipo2: initialEquipo2, saved: hasSavedPrediction });
 
     card.querySelectorAll('.score-spinner').forEach(spinner => {
       const side  = spinner.dataset.side;
@@ -286,7 +290,7 @@ const Predictions = (() => {
   function markDirty(card) {
     card.classList.remove('pred-saved');
     const btn = card.querySelector('.btn-save');
-    if (btn) btn.textContent = 'Guardar prediccion';
+    if (btn) btn.textContent = 'Guardar predicción';
   }
 
   async function onSave(card, matchId) {
@@ -310,7 +314,7 @@ const Predictions = (() => {
     } catch (err) {
       btn.disabled = false;
       btn.textContent = 'No se pudo guardar';
-      console.warn('No se pudo guardar la prediccion:', err.message);
+      console.warn('No se pudo guardar la predicción:', err.message);
       return;
     }
 

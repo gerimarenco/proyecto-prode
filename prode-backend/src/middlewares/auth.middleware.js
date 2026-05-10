@@ -13,7 +13,7 @@ async function loadUsuario(req, tx = prisma) {
   try {
     payload = verifyAuthToken(token);
   } catch {
-    throw httpError(401, "Sesion invalida o expirada");
+    throw httpError(401, "Sesión inválida o expirada");
   }
 
   const usuario = await tx.usuario.findUnique({
@@ -29,7 +29,7 @@ async function loadUsuario(req, tx = prisma) {
 
 const requireAuth = asyncRoute(async (req, res, next) => {
   const usuario = await loadUsuario(req);
-  if (!usuario) throw httpError(401, "Tenes que iniciar sesion");
+  if (!usuario) throw httpError(401, "Tenés que iniciar sesión");
   next();
 });
 
@@ -44,7 +44,7 @@ const optionalAuth = asyncRoute(async (req, res, next) => {
 
 const requireAdmin = asyncRoute(async (req, res, next) => {
   const usuario = await loadUsuario(req);
-  if (!usuario) throw httpError(401, "Tenes que iniciar sesion");
+  if (!usuario) throw httpError(401, "Tenés que iniciar sesión");
   if (usuario.rol !== "ADMIN") throw httpError(403, "Requiere permisos de administrador");
   next();
 });

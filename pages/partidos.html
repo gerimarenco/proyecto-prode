@@ -11,31 +11,31 @@
     <nav class="navbar">
       <a class="logo" href="../index.html"><span class="logo-pulse"></span>Once Metros</a>
       <div class="nav-links">
-        <a href="../index.html">Inicio</a>
-        <a href="partidos.html" class="active">Partidos</a>
-        <a href="predicciones.html">Predicciones</a>
-        <a href="clasificacion.html">Ranking</a>
-        <a href="auth.html" data-auth-link data-auth-href="auth.html">Ingresar</a>
+        <a href="../index.html">Competencias</a>
+        <a href="partidos.html" class="active">Predicciones</a>
+        <a href="../index.html#torneos">Torneos</a>
       </div>
     </nav>
   </header>
 
   <main>
-    <section class="page-header">
+    <section class="page-header page-header--compact">
       <div class="page-header-inner">
+        <a class="icon-btn" href="../index.html#predicciones" aria-label="Volver">‹</a>
         <div>
-          <span class="section-label"><span class="dot"></span>Fixture</span>
+          <span class="section-label"><span class="dot"></span>Competencia</span>
           <h1 class="page-title">Partidos</h1>
         </div>
+        <div id="selected-context" class="selected-context"></div>
       </div>
     </section>
 
     <section class="section">
       <div class="filters-bar">
-        <button class="filter-chip active" data-group="liga" data-value="">Todos</button>
-        <button class="filter-chip" data-group="liga" data-value="libertadores">Libertadores</button>
-        <button class="filter-chip" data-group="liga" data-value="champions">Champions</button>
-        <button class="filter-chip" data-group="liga" data-value="laliga">La Liga</button>
+        <button class="filter-chip active" data-group="estado" data-value="">Todos</button>
+        <button class="filter-chip" data-group="estado" data-value="proximo">Próximos</button>
+        <button class="filter-chip" data-group="estado" data-value="en-vivo">En vivo</button>
+        <button class="filter-chip" data-group="estado" data-value="finalizado">Finalizados</button>
       </div>
       <div id="matches-list" class="matches-grid"></div>
     </section>
@@ -43,15 +43,12 @@
 
   <nav class="bottom-nav">
     <div class="bottom-nav__inner">
-      <a class="bottom-nav__item" href="../index.html">Inicio</a>
-      <a class="bottom-nav__item active" href="partidos.html">Partidos</a>
-      <a class="bottom-nav__item" href="predicciones.html">Predicciones</a>
-      <a class="bottom-nav__item" href="clasificacion.html">Ranking</a>
-      <a class="bottom-nav__item" href="auth.html" data-auth-link data-auth-href="auth.html">Ingresar</a>
+      <a class="bottom-nav__item" href="../index.html">Competencias</a>
+      <a class="bottom-nav__item active" href="partidos.html">Predicciones</a>
+      <a class="bottom-nav__item" href="../index.html#torneos">Torneos</a>
     </div>
   </nav>
 
-  <script src="../js/mock-data.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/predictions.js"></script>
   <script src="../js/app.js"></script>
