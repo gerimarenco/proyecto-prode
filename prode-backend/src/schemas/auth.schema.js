@@ -33,6 +33,13 @@ const loginBody = registry.register(
   ),
 );
 
+const googleLoginBody = registry.register(
+  "AuthGoogleLoginBody",
+  z.object({
+    idToken: z.string().trim().min(1, "Token de Google requerido"),
+  }),
+);
+
 const usuarioPayload = registry.register(
   "Usuario",
   z.object({
@@ -62,4 +69,4 @@ const sessionResponse = registry.register(
   }),
 );
 
-module.exports = { loginBody, registerBody, sessionResponse, usuarioPayload };
+module.exports = { googleLoginBody, loginBody, registerBody, sessionResponse, usuarioPayload };

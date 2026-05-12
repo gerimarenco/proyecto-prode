@@ -6,7 +6,8 @@ Backend Express + Prisma para la app de predicciones.
 
 1. Copiar `.env.example` a `.env`.
 2. Completar `DATABASE_URL` apuntando a `prode_dev` en Azure PostgreSQL.
-3. Correr:
+3. Para login con Google, completar `GOOGLE_CLIENT_ID` con el OAuth Client ID web de Google Cloud.
+4. Correr:
 
 ```bash
 npm install
@@ -17,6 +18,16 @@ npm run dev
 ```
 
 La URL de Azure debe terminar con `?sslmode=require`.
+
+## Google auth
+
+El frontend usa Google Identity Services y envia el ID token a `POST /api/auth/google`.
+Configurar el mismo OAuth Client ID en:
+
+- `prode-backend/.env` como `GOOGLE_CLIENT_ID`
+- `js/config.js` como `GOOGLE_CLIENT_ID`
+
+En Google Cloud Console, agregar el origen local que uses para abrir la app, por ejemplo `http://localhost:8080`.
 
 ## Endpoints principales
 

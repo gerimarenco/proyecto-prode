@@ -1,8 +1,10 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { OAuth2Client } = require("google-auth-library");
 const env = require("../config/env");
 
 const SALT_ROUNDS = 12;
+const googleClient = new OAuth2Client();
 
 function normalizeUsername(username) {
   return String(username || "").trim().toLowerCase();
@@ -34,6 +36,14 @@ function verifyAuthToken(token) {
   return jwt.verify(token, env.JWT_SECRET);
 }
 
+async function verifyGoogleIdToken(idToken) {
+  const ticket = await googleClient.verifyIdToken({
+    idToken,
+    audience: env.GOOGLE_CLIENT_ID,
+  });
+  return ticket.getPayload();
+}
+
 function getBearerToken(req) {
   const header = req.get("authorization") || "";
   const [type, token] = header.split(" ");
@@ -47,6 +57,7 @@ module.exports = {
   normalizeEmail,
   normalizeUsername,
   signAuthToken,
+  verifyGoogleIdToken,
   verifyAuthToken,
   verifyPassword,
 };

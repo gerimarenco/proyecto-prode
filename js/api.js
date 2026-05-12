@@ -236,6 +236,15 @@ const API = (() => {
     return session;
   }
 
+  async function loginWithGoogle(idToken) {
+    const session = await request('/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({ idToken }),
+    });
+    setSession(session);
+    return session;
+  }
+
   async function me() {
     const response = await request('/auth/me');
     localStorage.setItem(USER_KEY, JSON.stringify(response.usuario));
@@ -289,6 +298,7 @@ const API = (() => {
     getUserPredictions,
     getUsuario,
     login,
+    loginWithGoogle,
     logout,
     me,
     register,

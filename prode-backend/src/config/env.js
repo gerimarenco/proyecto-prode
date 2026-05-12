@@ -19,6 +19,7 @@ const env = {
   PORT: Number(process.env.PORT) || 3000,
   NODE_ENV: process.env.NODE_ENV || "development",
   DATABASE_URL: required("DATABASE_URL"),
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || "",
   JWT_SECRET: getJwtSecret(),
   JWT_TTL: process.env.JWT_TTL || "7d",
 };

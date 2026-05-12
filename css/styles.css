@@ -1297,6 +1297,40 @@ button { font-family: var(--font); cursor: pointer; }
   box-shadow: 0 0 0 3px var(--primary-dim);
 }
 
+.google-auth {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.google-auth.hidden {
+  display: none;
+}
+
+#google-signin {
+  min-height: 40px;
+  display: flex;
+  justify-content: center;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  color: var(--text-3);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  height: 1px;
+  flex: 1;
+  background: var(--border);
+}
+
 .auth-error {
   border: 1px solid rgba(255,68,68,0.35);
   background: rgba(255,68,68,0.1);

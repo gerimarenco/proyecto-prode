@@ -4,7 +4,7 @@ const { asyncRoute } = require("../utils/asyncRoute");
 const { validate } = require("../middlewares/validate.middleware");
 const { requireAuth } = require("../middlewares/auth.middleware");
 const { z } = require("../openapi/registry");
-const { loginBody, registerBody, sessionResponse, usuarioPayload } =
+const { googleLoginBody, loginBody, registerBody, sessionResponse, usuarioPayload } =
   require("../schemas/auth.schema");
 const { errorResponse } = require("../schemas/common.schema");
 const controller = require("../controllers/auth.controller");
@@ -13,6 +13,7 @@ const router = Router();
 
 router.post("/register", validate({ body: registerBody }), asyncRoute(controller.register));
 router.post("/login", validate({ body: loginBody }), asyncRoute(controller.login));
+router.post("/google", validate({ body: googleLoginBody }), asyncRoute(controller.googleLogin));
 router.post("/logout", asyncRoute(controller.logout));
 router.get("/me", requireAuth, asyncRoute(controller.me));
 
@@ -35,6 +36,18 @@ registry.registerPath({
   responses: {
     200: { description: "Sesion iniciada", content: { "application/json": { schema: sessionResponse } } },
     401: { description: "Credenciales invalidas", content: { "application/json": { schema: errorResponse } } },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/auth/google",
+  tags: ["Auth"],
+  request: { body: { content: { "application/json": { schema: googleLoginBody } } } },
+  responses: {
+    200: { description: "Sesion iniciada con Google", content: { "application/json": { schema: sessionResponse } } },
+    401: { description: "Token invalido", content: { "application/json": { schema: errorResponse } } },
+    503: { description: "Google auth no configurado", content: { "application/json": { schema: errorResponse } } },
   },
 });
 

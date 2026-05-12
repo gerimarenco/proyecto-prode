@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ingresar | Once Metros</title>
   <link rel="stylesheet" href="../css/styles.css">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
   <header class="header">
@@ -36,6 +37,11 @@
       </div>
 
       <div id="auth-error" class="auth-error hidden"></div>
+
+      <div id="google-auth" class="google-auth hidden">
+        <div id="google-signin"></div>
+        <div class="auth-divider"><span>o</span></div>
+      </div>
 
       <div id="tab-login" class="tab-content">
         <form id="login-form" class="auth-form">
@@ -83,6 +89,7 @@
     </div>
   </nav>
 
+  <script src="../js/config.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/predictions.js"></script>
   <script src="../js/app.js"></script>

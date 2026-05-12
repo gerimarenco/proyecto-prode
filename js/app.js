@@ -106,6 +106,8 @@ function initAuth() {
     API.me().then(() => updateAuthNav()).catch(() => API.logout());
   }
 
+  initGoogleAuth();
+
   const loginForm = document.getElementById('login-form');
   const registerForm = document.getElementById('register-form');
 
@@ -146,6 +148,47 @@ function initAuth() {
       setAuthError(error.message);
     }
   });
+}
+
+function initGoogleAuth() {
+  const wrapper = document.getElementById('google-auth');
+  const target = document.getElementById('google-signin');
+  const clientId = window.ONCE_METROS_CONFIG?.GOOGLE_CLIENT_ID?.trim();
+  if (!wrapper || !target || !clientId) return;
+
+  wrapper.classList.remove('hidden');
+
+  const render = () => {
+    if (!window.google?.accounts?.id) return;
+    window.google.accounts.id.initialize({
+      client_id: clientId,
+      callback: handleGoogleCredential,
+    });
+    window.google.accounts.id.renderButton(target, {
+      theme: 'filled_black',
+      size: 'large',
+      type: 'standard',
+      text: 'continue_with',
+      shape: 'rectangular',
+      width: Math.min(target.offsetWidth || 360, 400),
+    });
+  };
+
+  if (window.google?.accounts?.id) {
+    render();
+  } else {
+    window.addEventListener('load', render, { once: true });
+  }
+}
+
+async function handleGoogleCredential(response) {
+  setAuthError('');
+  try {
+    await API.loginWithGoogle(response.credential);
+    window.location.href = '../index.html';
+  } catch (error) {
+    setAuthError(error.message);
+  }
 }
 
 function setAuthError(message) {
