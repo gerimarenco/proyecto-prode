@@ -7,6 +7,11 @@ const { idParam, errorResponse } = require("../schemas/common.schema");
 const { createTorneoBody, tablaEntryPayload, torneoPayload } =
   require("../schemas/torneos.schema");
 const { prediccionPayload } = require("../schemas/predicciones.schema");
+const {
+  crearInvitacionBody,
+  invitacionPayload,
+  inviteLinkPayload,
+} = require("../schemas/invitaciones.schema");
 const controller = require("../controllers/torneos.controller");
 
 const router = Router();
@@ -36,6 +41,38 @@ router.get(
   requireAuth,
   validate({ params: idParam }),
   asyncRoute(controller.getMisPredicciones),
+);
+
+// Creator-only: invitaciones e invite link
+router.post(
+  "/:id/invitaciones",
+  requireAuth,
+  validate({ params: idParam, body: crearInvitacionBody }),
+  asyncRoute(controller.invitarUsuario),
+);
+router.get(
+  "/:id/invitaciones",
+  requireAuth,
+  validate({ params: idParam }),
+  asyncRoute(controller.listarInvitacionesDelTorneo),
+);
+router.get(
+  "/:id/invite-link",
+  requireAuth,
+  validate({ params: idParam }),
+  asyncRoute(controller.getInviteLink),
+);
+router.post(
+  "/:id/invite-link",
+  requireAuth,
+  validate({ params: idParam }),
+  asyncRoute(controller.rotateInviteLink),
+);
+router.delete(
+  "/:id/invite-link",
+  requireAuth,
+  validate({ params: idParam }),
+  asyncRoute(controller.revokeInviteLink),
 );
 
 registry.registerPath({
@@ -105,6 +142,71 @@ registry.registerPath({
     200: { description: "Predicciones del usuario para este torneo", content: { "application/json": { schema: z.array(prediccionPayload) } } },
     401: { description: "No autenticado", content: { "application/json": { schema: errorResponse } } },
     404: { description: "No encontrado", content: { "application/json": { schema: errorResponse } } },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/torneos/{id}/invitaciones",
+  tags: ["Invitaciones"],
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: idParam,
+    body: { content: { "application/json": { schema: crearInvitacionBody } } },
+  },
+  responses: {
+    201: { description: "Invitacion creada", content: { "application/json": { schema: invitacionPayload } } },
+    403: { description: "No sos creador del torneo", content: { "application/json": { schema: errorResponse } } },
+    404: { description: "Usuario o torneo no encontrado", content: { "application/json": { schema: errorResponse } } },
+    409: { description: "El usuario ya es miembro", content: { "application/json": { schema: errorResponse } } },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/torneos/{id}/invitaciones",
+  tags: ["Invitaciones"],
+  security: [{ bearerAuth: [] }],
+  request: { params: idParam },
+  responses: {
+    200: { description: "Invitaciones del torneo", content: { "application/json": { schema: z.array(invitacionPayload) } } },
+    403: { description: "No sos creador", content: { "application/json": { schema: errorResponse } } },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/torneos/{id}/invite-link",
+  tags: ["Invitaciones"],
+  security: [{ bearerAuth: [] }],
+  request: { params: idParam },
+  responses: {
+    200: { description: "Token actual (null si no hay)", content: { "application/json": { schema: inviteLinkPayload } } },
+    403: { description: "No sos creador", content: { "application/json": { schema: errorResponse } } },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/torneos/{id}/invite-link",
+  tags: ["Invitaciones"],
+  security: [{ bearerAuth: [] }],
+  request: { params: idParam },
+  responses: {
+    201: { description: "Token generado / rotado", content: { "application/json": { schema: inviteLinkPayload } } },
+    403: { description: "No sos creador", content: { "application/json": { schema: errorResponse } } },
+  },
+});
+
+registry.registerPath({
+  method: "delete",
+  path: "/torneos/{id}/invite-link",
+  tags: ["Invitaciones"],
+  security: [{ bearerAuth: [] }],
+  request: { params: idParam },
+  responses: {
+    200: { description: "Token revocado", content: { "application/json": { schema: inviteLinkPayload } } },
+    403: { description: "No sos creador", content: { "application/json": { schema: errorResponse } } },
   },
 });
 

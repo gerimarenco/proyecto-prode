@@ -8,6 +8,8 @@ const torneosRoutes = require("./torneos.routes");
 const equiposRoutes = require("./equipos.routes");
 const partidosRoutes = require("./partidos.routes");
 const prediccionesRoutes = require("./predicciones.routes");
+const invitacionesRoutes = require("./invitaciones.routes");
+const invitesRoutes = require("./invites.routes");
 
 const { buildSpec } = require("../openapi/spec");
 
@@ -22,6 +24,8 @@ router.use("/torneos", torneosRoutes);
 router.use("/equipos", equiposRoutes);
 router.use("/partidos", partidosRoutes);
 router.use("/predicciones", prediccionesRoutes);
+router.use("/invitaciones", invitacionesRoutes);
+router.use("/invites", invitesRoutes);
 
 router.get("/openapi.json", (req, res) => res.json(buildSpec()));
 router.use("/docs", swaggerUi.serve, swaggerUi.setup(undefined, { swaggerOptions: { url: "/api/openapi.json" } }));

@@ -1683,3 +1683,152 @@ svg.team__badge {
   /* filter para sombra sutil debajo del escudo */
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));
 }
+
+/* =============================================
+   INVITACIONES
+   ============================================= */
+.invite-panel {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+.invite-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.invite-panel__head strong {
+  font-size: 1.05rem;
+}
+.invite-feedback {
+  padding: .65rem .85rem;
+  border-radius: 8px;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  font-size: .9rem;
+}
+.invite-feedback.error { border-color: rgba(255,80,80,.4); color: #ff8c8c; }
+.invite-feedback.success { border-color: rgba(0,200,83,.4); color: var(--primary); }
+
+.invite-search {
+  display: flex;
+  gap: .65rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+.invite-search__label {
+  flex: 1 1 220px;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  font-size: .85rem;
+  color: var(--text-2);
+}
+.invite-search__label input {
+  background: var(--bg);
+  border: 1px solid var(--border-2);
+  color: var(--text);
+  padding: .6rem .75rem;
+  border-radius: 8px;
+}
+
+.invite-link {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+}
+.invite-link__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.invite-link__row {
+  display: flex;
+  gap: .5rem;
+}
+.invite-link__row input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border-2);
+  color: var(--text-2);
+  padding: .55rem .75rem;
+  border-radius: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .85rem;
+}
+.invite-link__actions {
+  display: flex;
+  gap: .5rem;
+}
+
+.invite-list strong { display: block; margin-bottom: .65rem; }
+.invite-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: .75rem;
+  padding: .6rem .75rem;
+  border-radius: 8px;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  margin-bottom: .4rem;
+}
+.invite-row__who { display: flex; flex-direction: column; }
+.invite-row__name { font-weight: 600; }
+.invite-row__meta { color: var(--text-3); font-size: .8rem; }
+.invite-row__state {
+  font-size: .75rem;
+  padding: .2rem .55rem;
+  border-radius: 999px;
+  background: var(--bg-4);
+  color: var(--text-2);
+}
+.invite-row__state.PENDIENTE { color: #ffd166; }
+.invite-row__state.ACEPTADA { color: var(--primary); }
+.invite-row__state.RECHAZADA { color: #ff8c8c; }
+.invite-row__state.CANCELADA { color: var(--text-3); }
+
+/* Inbox + landing */
+.invite-inbox-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: .75rem;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+.invite-inbox-card__head { display: flex; flex-direction: column; gap: .15rem; }
+.invite-inbox-card__head strong { font-size: 1.05rem; }
+.invite-inbox-card__head small { color: var(--text-3); }
+.invite-inbox-card__actions { display: flex; gap: .5rem; }
+
+.invite-landing {
+  max-width: 480px;
+  margin: 2.5rem auto;
+  padding: 2rem 1.5rem;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  text-align: center;
+}
+.invite-landing h1 { margin: 0; font-size: 1.4rem; }
+.invite-landing .invite-landing__meta { color: var(--text-2); }
+.invite-landing .invite-landing__actions {
+  display: flex;
+  gap: .5rem;
+  justify-content: center;
+}

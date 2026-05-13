@@ -18,6 +18,15 @@ const torneoPayload = registry.register(
     competencia: z
       .object({ id: z.string(), nombre: z.string(), slug: z.string() })
       .nullable(),
+    creadorId: z.string().nullable(),
+    creador: z
+      .object({
+        id: z.string(),
+        nombre: z.string(),
+        apellido: z.string().nullable(),
+        username: z.string(),
+      })
+      .nullable(),
     miembrosCount: z.number().nullable(),
     fechaCreacion: z.string().datetime().or(z.date()),
   }),

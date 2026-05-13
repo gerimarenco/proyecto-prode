@@ -1,11 +1,13 @@
 const torneosService = require("../services/torneos.service");
 const prediccionesService = require("../services/predicciones.service");
+const invitacionesService = require("../services/invitaciones.service");
 const { httpError } = require("../utils/httpError");
 const {
   tablaEntryResponse,
   torneoDeAmigosResponse,
 } = require("../serializers/torneoDeAmigos.serializer");
 const { prediccionResponse } = require("../serializers/prediccion.serializer");
+const { invitacionResponse } = require("../serializers/invitacion.serializer");
 
 function torneoToJson(torneo) {
   return torneoDeAmigosResponse(torneo, { miembrosCount: torneo._count?.usuarios });
@@ -58,4 +60,63 @@ async function getMisPredicciones(req, res) {
   res.json(predicciones.map(prediccionResponse));
 }
 
-module.exports = { create, getById, getMisPredicciones, getTabla, list, unirse };
+async function invitarUsuario(req, res) {
+  const invitacion = await invitacionesService.crearInvitacion({
+    torneoId: req.params.id,
+    invitadoPorId: req.usuario.id,
+    identificador: req.body.identificador,
+  });
+  res.status(201).json(invitacionResponse(invitacion));
+}
+
+async function listarInvitacionesDelTorneo(req, res) {
+  const invitaciones = await invitacionesService.listarParaTorneo(req.params.id, req.usuario.id);
+  res.json(invitaciones.map(invitacionResponse));
+}
+
+async function getInviteLink(req, res) {
+  const token = await torneosService.getInviteToken(req.params.id, req.usuario.id);
+  res.json({ token });
+}
+
+async function rotateInviteLink(req, res) {
+  const token = await torneosService.rotateInviteToken(req.params.id, req.usuario.id);
+  res.status(201).json({ token });
+}
+
+async function revokeInviteLink(req, res) {
+  await torneosService.revokeInviteToken(req.params.id, req.usuario.id);
+  res.json({ token: null });
+}
+
+async function getByInviteToken(req, res) {
+  const torneo = await torneosService.getByInviteToken(req.params.token);
+  res.json(torneoToJson(torneo));
+}
+
+async function joinByInviteToken(req, res) {
+  const { torneo, yaEraMiembro } = await torneosService.joinByInviteToken(
+    req.params.token,
+    req.usuario.id,
+  );
+  res.status(yaEraMiembro ? 200 : 201).json({
+    ...torneoToJson(torneo),
+    yaEraMiembro,
+  });
+}
+
+module.exports = {
+  create,
+  getById,
+  getByInviteToken,
+  getInviteLink,
+  getMisPredicciones,
+  getTabla,
+  invitarUsuario,
+  joinByInviteToken,
+  list,
+  listarInvitacionesDelTorneo,
+  revokeInviteLink,
+  rotateInviteLink,
+  unirse,
+};

@@ -25,6 +25,13 @@ enum RolUsuario {
   ADMIN
 }
 
+enum EstadoInvitacion {
+  PENDIENTE
+  ACEPTADA
+  RECHAZADA
+  CANCELADA
+}
+
 model Usuario {
   id                   String           @id @default(cuid())
   nombre               String
@@ -43,6 +50,9 @@ model Usuario {
   hinchaDe             Equipo?          @relation("UsuarioHinchaDe", fields: [hinchaDeEquipoId], references: [id])
   predicciones         Prediccion[]
   torneosDeAmigos      TorneoDeAmigos[] @relation("UsuariosTorneosDeAmigos")
+  torneosCreados       TorneoDeAmigos[] @relation("TorneosCreadosPorUsuario")
+  invitacionesRecibidas Invitacion[]    @relation("InvitacionesRecibidas")
+  invitacionesEnviadas Invitacion[]     @relation("InvitacionesEnviadas")
 
   @@index([hinchaDeEquipoId])
   @@index([email])
@@ -62,13 +72,36 @@ model TorneoDeAmigos {
   id                   String           @id @default(cuid())
   nombre               String
   competenciaId        String
+  creadorId            String?
+  inviteToken          String?          @unique
   activo               Boolean          @default(true)
   fechaCreacion        DateTime         @default(now())
   fechaActualizacion   DateTime         @updatedAt
   competencia          Competencia      @relation(fields: [competenciaId], references: [id])
+  creador              Usuario?         @relation("TorneosCreadosPorUsuario", fields: [creadorId], references: [id])
   usuarios             Usuario[]        @relation("UsuariosTorneosDeAmigos")
+  invitaciones         Invitacion[]
 
   @@index([competenciaId])
+  @@index([creadorId])
+}
+
+model Invitacion {
+  id                   String           @id @default(cuid())
+  torneoDeAmigosId     String
+  invitadoId           String
+  invitadoPorId        String
+  estado               EstadoInvitacion @default(PENDIENTE)
+  fechaCreacion        DateTime         @default(now())
+  fechaActualizacion   DateTime         @updatedAt
+  fechaRespuesta       DateTime?
+  torneoDeAmigos       TorneoDeAmigos   @relation(fields: [torneoDeAmigosId], references: [id], onDelete: Cascade)
+  invitado             Usuario          @relation("InvitacionesRecibidas", fields: [invitadoId], references: [id], onDelete: Cascade)
+  invitadoPor          Usuario          @relation("InvitacionesEnviadas", fields: [invitadoPorId], references: [id], onDelete: Cascade)
+
+  @@unique([torneoDeAmigosId, invitadoId])
+  @@index([invitadoId, estado])
+  @@index([torneoDeAmigosId, estado])
 }
 
 model Equipo {

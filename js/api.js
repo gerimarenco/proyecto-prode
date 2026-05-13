@@ -276,36 +276,109 @@ const API = (() => {
       : predicciones;
   }
 
+  // --- INVITACIONES ---
+
+  async function invitarAlTorneo(torneoId, identificador) {
+    return request(`/torneos/${torneoId}/invitaciones`, {
+      method: 'POST',
+      body: JSON.stringify({ identificador }),
+    });
+  }
+
+  async function getInvitacionesDelTorneo(torneoId) {
+    return request(`/torneos/${torneoId}/invitaciones`);
+  }
+
+  async function getInviteLink(torneoId) {
+    const { token } = await request(`/torneos/${torneoId}/invite-link`);
+    return token ? { token, url: buildInviteUrl(token) } : { token: null, url: null };
+  }
+
+  async function generarInviteLink(torneoId) {
+    const { token } = await request(`/torneos/${torneoId}/invite-link`, { method: 'POST' });
+    return { token, url: buildInviteUrl(token) };
+  }
+
+  async function revocarInviteLink(torneoId) {
+    return request(`/torneos/${torneoId}/invite-link`, { method: 'DELETE' });
+  }
+
+  function buildInviteUrl(token) {
+    if (!token) return null;
+    const base = window.location.origin;
+    const path = window.location.pathname.includes('/pages/')
+      ? 'invitacion.html'
+      : 'pages/invitacion.html';
+    const dir = window.location.pathname.replace(/[^/]*$/, '');
+    return `${base}${dir}${path}?token=${encodeURIComponent(token)}`;
+  }
+
+  async function getTorneoPorInviteToken(token) {
+    return request(`/invites/${encodeURIComponent(token)}`);
+  }
+
+  async function unirseConInviteToken(token) {
+    return request(`/invites/${encodeURIComponent(token)}/aceptar`, { method: 'POST' });
+  }
+
+  async function getMisInvitacionesPendientes() {
+    if (!getToken()) return [];
+    return request('/invitaciones');
+  }
+
+  async function aceptarInvitacion(id) {
+    return request(`/invitaciones/${id}/aceptar`, { method: 'POST' });
+  }
+
+  async function rechazarInvitacion(id) {
+    return request(`/invitaciones/${id}/rechazar`, { method: 'POST' });
+  }
+
+  async function cancelarInvitacion(id) {
+    return request(`/invitaciones/${id}`, { method: 'DELETE' });
+  }
+
   return {
+    aceptarInvitacion,
+    cancelarInvitacion,
     cerrarPartido,
     clearSession,
     createTorneoDeAmigos,
+    generarInviteLink,
     getCompetencia,
     getCompetencias,
     getCurrentUser,
     getEquipo,
     getEquipos,
+    getInvitacionesDelTorneo,
+    getInviteLink,
     getLeaderboard,
     getMatch,
     getMatches,
+    getMisInvitacionesPendientes,
     getMisPrediccionesEnTorneoDeAmigos,
     getSelectedCompetencia,
     getSelectedTorneo,
     getTablaTorneoDeAmigos,
     getToken,
     getTorneoDeAmigos,
+    getTorneoPorInviteToken,
     getTorneosDeAmigos,
     getUserPredictions,
     getUsuario,
+    invitarAlTorneo,
     login,
     loginWithGoogle,
     logout,
     me,
+    rechazarInvitacion,
     register,
+    revocarInviteLink,
     savePrediction,
     setSelectedCompetencia,
     setSelectedTorneo,
     unirseATorneoDeAmigos,
+    unirseConInviteToken,
     updatePrediction,
     updateUsuario,
   };

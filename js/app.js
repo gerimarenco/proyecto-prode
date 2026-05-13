@@ -9,20 +9,24 @@ document.addEventListener('DOMContentLoaded', () => {
   initAccountMenu();
   const page = detectPage();
   switch (page) {
-    case 'home':          initHome();          break;
-    case 'partidos':      initPartidos();      break;
-    case 'predicciones':  initPredicciones();  break;
-    case 'clasificacion': initClasificacion(); break;
-    case 'auth':          initAuth();          break;
+    case 'home':           initHome();          break;
+    case 'partidos':       initPartidos();      break;
+    case 'predicciones':   initPredicciones();  break;
+    case 'clasificacion':  initClasificacion(); break;
+    case 'auth':           initAuth();          break;
+    case 'invitaciones':   initInvitaciones();  break;
+    case 'invitacion':     initInviteLanding(); break;
   }
 });
 
 function detectPage() {
   const p = window.location.pathname;
-  if (p.includes('partidos'))      return 'partidos';
-  if (p.includes('predicciones'))  return 'predicciones';
-  if (p.includes('clasificacion')) return 'clasificacion';
-  if (p.includes('auth'))          return 'auth';
+  if (p.includes('invitaciones.html')) return 'invitaciones';
+  if (p.includes('invitacion.html'))   return 'invitacion';
+  if (p.includes('partidos'))          return 'partidos';
+  if (p.includes('predicciones'))      return 'predicciones';
+  if (p.includes('clasificacion'))     return 'clasificacion';
+  if (p.includes('auth'))              return 'auth';
   return 'home';
 }
 
@@ -60,6 +64,7 @@ function initAccountMenu() {
         </div>
         <a href="${authRelativePath('auth.html')}">${user ? 'Mi cuenta' : 'Ingresar'}</a>
         <a href="${homeRelativePath()}">Competencias</a>
+        <a class="${user ? '' : 'hidden'}" href="${authRelativePath('invitaciones.html')}">Invitaciones</a>
         <button class="${user ? '' : 'hidden'}" data-menu-logout>Cerrar Sesión</button>
       </div>
     `;
@@ -125,7 +130,7 @@ function initAuth() {
         identificador: form.get('identificador'),
         password: form.get('password'),
       });
-      window.location.href = '../index.html';
+      redirectAfterAuth();
     } catch (error) {
       setAuthError(error.message);
     }
@@ -143,11 +148,24 @@ function initAuth() {
         email: form.get('email'),
         password: form.get('password'),
       });
-      window.location.href = '../index.html';
+      redirectAfterAuth();
     } catch (error) {
       setAuthError(error.message);
     }
   });
+}
+
+function safeNextHref(next) {
+  if (!next) return null;
+  if (/^[a-z]+:\/\//i.test(next)) return null;
+  if (next.startsWith('//')) return null;
+  return next;
+}
+
+function redirectAfterAuth() {
+  const params = new URLSearchParams(window.location.search);
+  const next = safeNextHref(params.get('next'));
+  window.location.href = next || '../index.html';
 }
 
 function initGoogleAuth() {
@@ -185,7 +203,7 @@ async function handleGoogleCredential(response) {
   setAuthError('');
   try {
     await API.loginWithGoogle(response.credential);
-    window.location.href = '../index.html';
+    redirectAfterAuth();
   } catch (error) {
     setAuthError(error.message);
   }
@@ -520,6 +538,298 @@ function initClasificacion() {
   renderSelectedContext();
   loadSelectedTorneoHeader();
   loadLeaderboard();
+  initInvitePanel();
+}
+
+async function initInvitePanel() {
+  const toggleBtn = document.getElementById('invite-toggle');
+  const panel = document.getElementById('invite-panel');
+  if (!toggleBtn || !panel) return;
+
+  const selected = API.getSelectedTorneo();
+  const user = API.getCurrentUser();
+  if (!selected || !user) return;
+
+  let torneo;
+  try {
+    torneo = await API.getTorneoDeAmigos(selected.id);
+  } catch { return; }
+
+  if (torneo.creadorId !== user.id) return;
+
+  toggleBtn.classList.remove('hidden');
+  toggleBtn.addEventListener('click', () => panel.classList.toggle('hidden'));
+  document.getElementById('invite-close')?.addEventListener('click', () => panel.classList.add('hidden'));
+
+  const form = document.getElementById('invite-search-form');
+  const input = document.getElementById('invite-identificador');
+  form?.addEventListener('submit', async event => {
+    event.preventDefault();
+    const value = input.value.trim();
+    if (!value) return;
+    setInviteFeedback('');
+    try {
+      await API.invitarAlTorneo(torneo.id, value);
+      setInviteFeedback(`Invitación enviada a ${value}.`, 'success');
+      input.value = '';
+      await refreshInviteSentList(torneo.id);
+    } catch (err) {
+      setInviteFeedback(err.message, 'error');
+    }
+  });
+
+  document.getElementById('invite-link-generate')?.addEventListener('click', async () => {
+    try {
+      const { url } = await API.generarInviteLink(torneo.id);
+      setInviteLinkUrl(url);
+    } catch (err) { setInviteFeedback(err.message, 'error'); }
+  });
+  document.getElementById('invite-link-rotate')?.addEventListener('click', async () => {
+    try {
+      const { url } = await API.generarInviteLink(torneo.id);
+      setInviteLinkUrl(url);
+      setInviteFeedback('Enlace regenerado.', 'success');
+    } catch (err) { setInviteFeedback(err.message, 'error'); }
+  });
+  document.getElementById('invite-link-revoke')?.addEventListener('click', async () => {
+    if (!confirm('¿Revocar el enlace? Quien lo tenga no va a poder usarlo.')) return;
+    try {
+      await API.revocarInviteLink(torneo.id);
+      setInviteLinkUrl(null);
+      setInviteFeedback('Enlace revocado.', 'success');
+    } catch (err) { setInviteFeedback(err.message, 'error'); }
+  });
+  document.getElementById('invite-link-copy')?.addEventListener('click', async () => {
+    const urlInput = document.getElementById('invite-link-url');
+    if (!urlInput?.value) return;
+    try {
+      await navigator.clipboard.writeText(urlInput.value);
+      setInviteFeedback('Enlace copiado.', 'success');
+    } catch {
+      urlInput.select();
+      document.execCommand('copy');
+      setInviteFeedback('Enlace copiado.', 'success');
+    }
+  });
+
+  try {
+    const { url } = await API.getInviteLink(torneo.id);
+    setInviteLinkUrl(url);
+  } catch {}
+  await refreshInviteSentList(torneo.id);
+}
+
+function setInviteLinkUrl(url) {
+  const urlInput = document.getElementById('invite-link-url');
+  const copyBtn = document.getElementById('invite-link-copy');
+  const generateBtn = document.getElementById('invite-link-generate');
+  const rotateBtn = document.getElementById('invite-link-rotate');
+  const revokeBtn = document.getElementById('invite-link-revoke');
+  if (urlInput) urlInput.value = url || '';
+  if (copyBtn) copyBtn.disabled = !url;
+  if (url) {
+    generateBtn?.classList.add('hidden');
+    rotateBtn?.classList.remove('hidden');
+    revokeBtn?.classList.remove('hidden');
+  } else {
+    generateBtn?.classList.remove('hidden');
+    rotateBtn?.classList.add('hidden');
+    revokeBtn?.classList.add('hidden');
+  }
+}
+
+function setInviteFeedback(message, type) {
+  const el = document.getElementById('invite-feedback');
+  if (!el) return;
+  el.textContent = message;
+  el.classList.remove('error', 'success');
+  el.classList.toggle('hidden', !message);
+  if (type) el.classList.add(type);
+}
+
+async function refreshInviteSentList(torneoId) {
+  const list = document.getElementById('invite-sent-list');
+  if (!list) return;
+  try {
+    const invitaciones = await API.getInvitacionesDelTorneo(torneoId);
+    if (!invitaciones.length) {
+      list.innerHTML = emptyState('Todavía no enviaste invitaciones.');
+      return;
+    }
+    list.innerHTML = invitaciones.map(renderInviteSentRow).join('');
+    list.querySelectorAll('[data-cancel-invitacion]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('¿Cancelar esta invitación?')) return;
+        try {
+          await API.cancelarInvitacion(btn.dataset.cancelInvitacion);
+          await refreshInviteSentList(torneoId);
+        } catch (err) {
+          setInviteFeedback(err.message, 'error');
+        }
+      });
+    });
+  } catch (err) {
+    list.innerHTML = errorState(err.message);
+  }
+}
+
+function renderInviteSentRow(inv) {
+  const u = inv.invitado || {};
+  const name = u.nombre || u.username || 'Usuario';
+  const action = inv.estado === 'PENDIENTE'
+    ? `<button class="btn btn-outline btn-sm" data-cancel-invitacion="${inv.id}">Cancelar</button>`
+    : '';
+  return `
+    <div class="invite-row">
+      <div class="invite-row__who">
+        <span class="invite-row__name">${escapeHtml(name)}</span>
+        <span class="invite-row__meta">@${escapeHtml(u.username || '')}</span>
+      </div>
+      <span class="invite-row__state ${inv.estado}">${labelEstadoInvitacion(inv.estado)}</span>
+      ${action}
+    </div>
+  `;
+}
+
+function labelEstadoInvitacion(estado) {
+  return ({
+    PENDIENTE: 'Pendiente',
+    ACEPTADA: 'Aceptada',
+    RECHAZADA: 'Rechazada',
+    CANCELADA: 'Cancelada',
+  })[estado] || estado;
+}
+
+/* --------------------------------------------------------
+   INVITACIONES INBOX
+   -------------------------------------------------------- */
+async function initInvitaciones() {
+  if (!API.getToken()) {
+    const next = encodeURIComponent('invitaciones.html');
+    window.location.href = `auth.html?next=${next}`;
+    return;
+  }
+  await loadInvitacionesPendientes();
+}
+
+async function loadInvitacionesPendientes() {
+  const list = document.getElementById('invitaciones-list');
+  if (!list) return;
+  showSkeleton(list, 2);
+  try {
+    const invitaciones = await API.getMisInvitacionesPendientes();
+    if (!invitaciones.length) {
+      list.innerHTML = emptyState('No tenés invitaciones pendientes.');
+      return;
+    }
+    list.innerHTML = invitaciones.map(renderInviteInboxCard).join('');
+    list.querySelectorAll('[data-accept]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        try {
+          await API.aceptarInvitacion(btn.dataset.accept);
+          setInvitacionesFeedback('Te uniste al torneo.', 'success');
+          await loadInvitacionesPendientes();
+        } catch (err) { setInvitacionesFeedback(err.message, 'error'); }
+      });
+    });
+    list.querySelectorAll('[data-reject]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        try {
+          await API.rechazarInvitacion(btn.dataset.reject);
+          await loadInvitacionesPendientes();
+        } catch (err) { setInvitacionesFeedback(err.message, 'error'); }
+      });
+    });
+  } catch (err) {
+    list.innerHTML = errorState(err.message);
+  }
+}
+
+function renderInviteInboxCard(inv) {
+  const torneo = inv.torneoDeAmigos || {};
+  const competencia = torneo.competencia || {};
+  const sender = inv.invitadoPor || {};
+  return `
+    <div class="invite-inbox-card">
+      <div class="invite-inbox-card__head">
+        <strong>${escapeHtml(torneo.nombre || 'Torneo')}</strong>
+        <small>${escapeHtml(competencia.nombre || '')} · te invitó @${escapeHtml(sender.username || '?')}</small>
+      </div>
+      <div class="invite-inbox-card__actions">
+        <button class="btn btn-primary" data-accept="${inv.id}">Aceptar</button>
+        <button class="btn btn-outline" data-reject="${inv.id}">Rechazar</button>
+      </div>
+    </div>
+  `;
+}
+
+function setInvitacionesFeedback(msg, type) {
+  const el = document.getElementById('invitaciones-feedback');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.remove('error', 'success');
+  el.classList.toggle('hidden', !msg);
+  if (type) el.classList.add(type);
+}
+
+/* --------------------------------------------------------
+   INVITE LINK LANDING
+   -------------------------------------------------------- */
+async function initInviteLanding() {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+  const title = document.getElementById('invite-landing-title');
+  const meta = document.getElementById('invite-landing-meta');
+  const actions = document.getElementById('invite-landing-actions');
+
+  if (!token) {
+    title.textContent = 'Invitación inválida';
+    meta.textContent = 'Falta el token de la invitación.';
+    actions.innerHTML = `<a class="btn btn-primary" href="../index.html">Ir al inicio</a>`;
+    return;
+  }
+
+  let torneo;
+  try {
+    torneo = await API.getTorneoPorInviteToken(token);
+  } catch (err) {
+    title.textContent = 'Invitación inválida o revocada';
+    meta.textContent = err.message;
+    actions.innerHTML = `<a class="btn btn-primary" href="../index.html">Ir al inicio</a>`;
+    return;
+  }
+
+  title.textContent = `Sumate a "${torneo.nombre}"`;
+  meta.textContent = torneo.competencia?.nombre || '';
+
+  if (!API.getToken()) {
+    const next = encodeURIComponent(`invitacion.html?token=${token}`);
+    actions.innerHTML = `
+      <a class="btn btn-primary" href="auth.html?next=${next}">Ingresar para unirme</a>
+      <a class="btn btn-outline" href="../index.html">Ver competencias</a>
+    `;
+    return;
+  }
+
+  actions.innerHTML = `<button class="btn btn-primary" id="invite-landing-join">Unirme al torneo</button>`;
+  document.getElementById('invite-landing-join')?.addEventListener('click', async () => {
+    try {
+      const result = await API.unirseConInviteToken(token);
+      API.setSelectedTorneo(result);
+      window.location.href = 'clasificacion.html';
+    } catch (err) {
+      setInviteLandingFeedback(err.message, 'error');
+    }
+  });
+}
+
+function setInviteLandingFeedback(msg, type) {
+  const el = document.getElementById('invite-landing-feedback');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.remove('error', 'success');
+  el.classList.toggle('hidden', !msg);
+  if (type) el.classList.add(type);
 }
 
 async function loadSelectedTorneoHeader() {

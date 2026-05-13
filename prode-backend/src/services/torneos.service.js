@@ -1,14 +1,28 @@
+const crypto = require("node:crypto");
 const { prisma } = require("../config/prisma");
 const { httpError } = require("../utils/httpError");
 const { esPrediccionExacta } = require("./scoring.service");
 
+const torneoInclude = {
+  competencia: true,
+  creador: { select: { id: true, nombre: true, apellido: true, username: true } },
+  _count: { select: { usuarios: true } },
+};
+
+function generateToken() {
+  return crypto.randomBytes(16).toString("base64url");
+}
+
+function assertEsCreador(torneo, usuarioId) {
+  if (!torneo.creadorId || torneo.creadorId !== usuarioId) {
+    throw httpError(403, "Solo el creador del torneo puede hacer esto");
+  }
+}
+
 async function list({ usuarioId } = {}) {
   return prisma.torneoDeAmigos.findMany({
     where: usuarioId ? { usuarios: { some: { id: usuarioId } } } : undefined,
-    include: {
-      competencia: true,
-      _count: { select: { usuarios: true } },
-    },
+    include: torneoInclude,
     orderBy: { fechaCreacion: "desc" },
   });
 }
@@ -16,10 +30,7 @@ async function list({ usuarioId } = {}) {
 async function getById(id) {
   const torneo = await prisma.torneoDeAmigos.findUnique({
     where: { id },
-    include: {
-      competencia: true,
-      _count: { select: { usuarios: true } },
-    },
+    include: torneoInclude,
   });
   if (!torneo) throw httpError(404, "Torneo no encontrado");
   return torneo;
@@ -33,12 +44,10 @@ async function create({ nombre, competenciaId, creadorId }) {
     data: {
       nombre,
       competenciaId,
+      creadorId,
       usuarios: { connect: { id: creadorId } },
     },
-    include: {
-      competencia: true,
-      _count: { select: { usuarios: true } },
-    },
+    include: torneoInclude,
   });
 }
 
@@ -62,10 +71,7 @@ async function joinUser(torneoId, usuarioId) {
 
   const torneoFinal = await prisma.torneoDeAmigos.findUnique({
     where: { id: torneoId },
-    include: {
-      competencia: true,
-      _count: { select: { usuarios: true } },
-    },
+    include: torneoInclude,
   });
 
   return { torneo: torneoFinal, yaEraMiembro: yaEra };
@@ -118,4 +124,81 @@ async function getTabla(torneoId) {
     );
 }
 
-module.exports = { create, getById, getTabla, joinUser, list };
+async function getInviteToken(torneoId, usuarioId) {
+  const torneo = await prisma.torneoDeAmigos.findUnique({
+    where: { id: torneoId },
+    select: { id: true, creadorId: true, inviteToken: true },
+  });
+  if (!torneo) throw httpError(404, "Torneo no encontrado");
+  assertEsCreador(torneo, usuarioId);
+  return torneo.inviteToken;
+}
+
+async function rotateInviteToken(torneoId, usuarioId) {
+  const torneo = await prisma.torneoDeAmigos.findUnique({
+    where: { id: torneoId },
+    select: { id: true, creadorId: true },
+  });
+  if (!torneo) throw httpError(404, "Torneo no encontrado");
+  assertEsCreador(torneo, usuarioId);
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const token = generateToken();
+    try {
+      const updated = await prisma.torneoDeAmigos.update({
+        where: { id: torneoId },
+        data: { inviteToken: token },
+        select: { inviteToken: true },
+      });
+      return updated.inviteToken;
+    } catch (err) {
+      if (err.code !== "P2002") throw err;
+    }
+  }
+  throw httpError(500, "No se pudo generar el invite token");
+}
+
+async function revokeInviteToken(torneoId, usuarioId) {
+  const torneo = await prisma.torneoDeAmigos.findUnique({
+    where: { id: torneoId },
+    select: { id: true, creadorId: true },
+  });
+  if (!torneo) throw httpError(404, "Torneo no encontrado");
+  assertEsCreador(torneo, usuarioId);
+  await prisma.torneoDeAmigos.update({
+    where: { id: torneoId },
+    data: { inviteToken: null },
+  });
+}
+
+async function getByInviteToken(token) {
+  const torneo = await prisma.torneoDeAmigos.findUnique({
+    where: { inviteToken: token },
+    include: torneoInclude,
+  });
+  if (!torneo) throw httpError(404, "Invitacion invalida o revocada");
+  return torneo;
+}
+
+async function joinByInviteToken(token, usuarioId) {
+  const torneo = await prisma.torneoDeAmigos.findUnique({
+    where: { inviteToken: token },
+    select: { id: true, activo: true },
+  });
+  if (!torneo) throw httpError(404, "Invitacion invalida o revocada");
+  return joinUser(torneo.id, usuarioId);
+}
+
+module.exports = {
+  assertEsCreador,
+  create,
+  getById,
+  getByInviteToken,
+  getInviteToken,
+  getTabla,
+  joinByInviteToken,
+  joinUser,
+  list,
+  revokeInviteToken,
+  rotateInviteToken,
+};
