@@ -5,7 +5,9 @@
 
 const API = (() => {
 
-  const BASE_URL = 'http://localhost:3000/api';
+  const BASE_URL = (
+    window.ONCE_METROS_CONFIG?.API_BASE_URL || 'http://localhost:3000/api'
+  ).replace(/\/$/, '');
   const TOKEN_KEY = 'once_metros_token';
   const USER_KEY = 'once_metros_user';
   const SELECTED_COMPETENCIA_KEY = 'once_metros_selected_competencia';

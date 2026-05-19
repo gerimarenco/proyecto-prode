@@ -22,6 +22,7 @@ const env = {
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || "",
   JWT_SECRET: getJwtSecret(),
   JWT_TTL: process.env.JWT_TTL || "7d",
+  CORS_ORIGINS: process.env.CORS_ORIGINS || "",
 };
 
 module.exports = env;

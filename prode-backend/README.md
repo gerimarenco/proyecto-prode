@@ -27,7 +27,11 @@ Configurar el mismo OAuth Client ID en:
 - `prode-backend/.env` como `GOOGLE_CLIENT_ID`
 - `js/config.js` como `GOOGLE_CLIENT_ID`
 
-En Google Cloud Console, agregar el origen local que uses para abrir la app, por ejemplo `http://localhost:8080`.
+En Google Cloud Console, agregar el origen local que uses para abrir la app, por ejemplo `http://localhost:8080`, y en produccion el dominio de Azure Static Web Apps.
+
+## Deploy a Azure
+
+Ver [DEPLOY.md](../DEPLOY.md) en la raiz del monorepo (App Service + Static Web Apps + GitHub Actions).
 
 ## Endpoints principales
 
