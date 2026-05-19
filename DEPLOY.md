@@ -1,88 +1,129 @@
 # Deployment (monorepo)
 
-The repo deploys in two parts from GitHub Actions:
+| Part | Host | How it deploys |
+|------|------|----------------|
+| `prode-backend/` | Azure App Service (Node 22 LTS) | GitHub Actions → `.github/workflows/deploy-backend.yml` |
+| Root static files (`index.html`, `js/`, …) | Vercel | Vercel dashboard (Git push to `main`) — **not** GitHub Actions |
 
-| Part | Host | Workflow |
-|------|------|----------|
-| `prode-backend/` | Azure App Service (Linux, Node 22 LTS) | `.github/workflows/deploy-backend.yml` |
-| Root static files | Azure Static Web Apps | `.github/workflows/deploy-frontend.yml` |
+There is **no** GitHub Pages deploy and **no** Azure Static Web Apps workflow in this repo anymore (frontend uses `vercel.json` to proxy `/api` to Azure).
 
-Database: Azure PostgreSQL (already used locally via `DATABASE_URL`).
+Database: Azure PostgreSQL (`DATABASE_URL` with `?sslmode=require`).
 
-## 1. Azure resources
+---
 
-1. **PostgreSQL** – create `prode` (or prod) database; note connection string with `?sslmode=require`.
-2. **App Service** – Linux, **Node 22 LTS** stack (22 or 24 both work; this repo targets 22), name e.g. `prode-api-xyz`.
-   - Application settings (Configuration → Application settings):
-     - `DATABASE_URL`
-     - `JWT_SECRET` (long random string)
-     - `GOOGLE_CLIENT_ID` (same as `js/config.js`)
-     - `NODE_ENV` = `production`
-     - `CORS_ORIGINS` = your SWA URL and Capacitor origins (see below)
-   - General settings → Startup Command: leave empty (uses `npm start` from `package.json`).
-3. **Static Web App** – connect to this GitHub repo when creating the resource (or add the deploy token manually).
+## What is CORS? (App Service `CORS_ORIGINS`)
 
-## 2. GitHub secrets
+Browsers block a page on **site A** from calling an API on **site B** unless the API explicitly allows **site A**. That rule is **CORS**.
 
-Repository → Settings → Secrets and variables → Actions:
+With **Vercel + `vercel.json`**, the browser only talks to `https://your-app.vercel.app/api/...`. Vercel forwards to Azure **on the server**, so the browser is **not** calling Azure directly → you usually **do not** need CORS for normal web use.
 
-| Secret | Used by | Description |
-|--------|---------|-------------|
-| `DATABASE_URL` | Backend workflow | Same as App Service; used for `prisma migrate deploy` in CI |
-| `AZURE_CLIENT_ID` | Backend workflow | Service principal (OIDC) |
-| `AZURE_TENANT_ID` | Backend workflow | Azure AD tenant |
-| `AZURE_SUBSCRIPTION_ID` | Backend workflow | Subscription |
-| `AZURE_WEBAPP_NAME` | Backend workflow | App Service name (not full URL) |
-| `AZURE_STATIC_WEB_APPS_API_TOKEN` | Frontend workflow | From SWA → Manage deployment token |
-| `AZURE_BACKEND_HOST` | Frontend workflow | App Service base URL, e.g. `https://prode-api-xyz.azurewebsites.net` (no trailing slash) |
+Set `CORS_ORIGINS` on App Service for:
 
-### Federated credential for GitHub OIDC (backend)
+- **Local dev** opening HTML on `http://localhost:8080` while the API is on port 3000
+- **Capacitor** apps hitting Azure directly
+- Calling `https://....azurewebsites.net` from the browser for debugging
 
-In Azure Portal → App registrations → your deploy SP → Certificates & secrets → Federated credentials:
+Example (no quotes in Azure portal):
 
-- Entity: GitHub Actions
-- Repository: `your-org/proyecto-prode`
-- Branch: `main`
-
-Assign the SP **Website Contributor** (or equivalent) on the App Service resource group.
-
-## 3. Google Sign-In origins
-
-In [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials → your OAuth Web client, add **Authorized JavaScript origins**:
-
-- `http://localhost:8080` (or whatever you use locally)
-- `https://<your-static-web-app>.azurestaticapps.net`
-- Custom domain if you add one to SWA
-
-Keep `GOOGLE_CLIENT_ID` in sync in App Service and `js/config.js`.
-
-## 4. How the frontend reaches the API
-
-- **Production web (SWA):** `js/config.js` sets `API_BASE_URL` to `https://<swa-host>/api`. SWA proxies `/api/*` to App Service (`staticwebapp.config.json`, `__BACKEND_HOST__` replaced in CI).
-- **Local web:** `http://localhost:3000/api`.
-- **Capacitor (Android/iOS):** set `CAPACITOR_API_BASE_URL` in `js/config.js` to `https://<app-service>/api` before `npm run sync`, and add Capacitor origins to `CORS_ORIGINS` on the backend.
-
-## 5. CORS
-
-With the SWA proxy, browser calls from the hosted site are **same-origin** (`/api`), so CORS is not involved for normal web use.
-
-Set `CORS_ORIGINS` on App Service when:
-
-- You open the API URL directly from another site, or
-- You use **Capacitor** / a local static server pointing at App Service.
-
-Example:
-
-```env
-CORS_ORIGINS=https://your-app.azurestaticapps.net,http://localhost:8080,capacitor://localhost,https://localhost
+```text
+http://localhost:8080,http://127.0.0.1:8080,capacitor://localhost,https://localhost
 ```
 
-## 6. First deploy
+Add your Vercel URL only if something calls Azure **without** the `/api` proxy.
 
-1. Push to `main` with backend changes → backend workflow runs migrations and deploys `prode-backend/`.
-2. Push frontend changes → SWA workflow uploads the static app and injects the API host into `staticwebapp.config.json`.
-3. Run seed once if needed: `npm run seed` locally against production `DATABASE_URL` (or a one-off job).
+---
 
-## 7. Manual workflow runs
+## App Service settings (portal)
 
-Both workflows support **workflow_dispatch** from the Actions tab if you need to redeploy without a path-filtered push.
+**Configuration → Application settings** (no surrounding `"` in the portal):
+
+| Name | Example / notes |
+|------|------------------|
+| `DATABASE_URL` | `postgresql://user:pass@host:5432/once_metros_dev?sslmode=require` |
+| `JWT_SECRET` | Long random string (can differ from local) |
+| `GOOGLE_CLIENT_ID` | Same as `js/config.js` |
+| `NODE_ENV` | `production` |
+| `CORS_ORIGINS` | See above (optional for Vercel-only web) |
+
+**Configuration → General settings → Startup Command:** leave **empty** (Azure runs `npm start` from `prode-backend/package.json`).
+
+Do **not** set `PORT` on Azure; the platform sets it automatically.
+
+---
+
+## Vercel (frontend)
+
+- Connected to this GitHub repo; deploys on push to `main`.
+- `vercel.json` rewrites `/api/*` → your App Service URL.
+- `js/config.js` uses `http://localhost:3000/api` locally and `/api` on Vercel.
+
+**Google OAuth:** add `https://<your-project>.vercel.app` under Authorized JavaScript origins.
+
+---
+
+## GitHub Actions — backend only
+
+### Secrets required
+
+Repo → **Settings** → **Secrets and variables** → **Actions**:
+
+| Secret | Value |
+|--------|--------|
+| `DATABASE_URL` | Same connection string as App Service |
+| `AZURE_CLIENT_ID` | From app registration (OIDC) |
+| `AZURE_TENANT_ID` | Azure AD tenant ID |
+| `AZURE_SUBSCRIPTION_ID` | Azure subscription ID |
+| `AZURE_WEBAPP_NAME` | Short App Service name only, e.g. `once-metros-api-gzhrhka4d4gac3cq` — **not** the full hostname |
+
+`DATABASE_URL` must exist **before** `npm ci` runs, because `postinstall` runs `prisma generate` and `prisma.config.ts` reads `DATABASE_URL`.
+
+You do **not** need `AZURE_STATIC_WEB_APPS_API_TOKEN` or `AZURE_BACKEND_HOST` (those were for the removed SWA workflow).
+
+### OIDC setup (so GitHub can deploy to Azure)
+
+This lets GitHub log into Azure **without** storing a password in secrets.
+
+1. **Create an app registration**  
+   Portal → **Microsoft Entra ID** → **App registrations** → **New registration** (e.g. `github-prode-deploy`).
+
+2. **Copy IDs**  
+   - Application (client) ID → `AZURE_CLIENT_ID`  
+   - Directory (tenant) ID → `AZURE_TENANT_ID`  
+   - Subscription ID → `AZURE_SUBSCRIPTION_ID` (Subscriptions blade)
+
+3. **Federated credential**  
+   App registration → **Certificates & secrets** → **Federated credentials** → **Add**  
+   - Scenario: GitHub Actions deploying Azure resources  
+   - Org/user, repo `proyecto-prode`, branch `main`
+
+4. **Permission to deploy**  
+   Resource group (or subscription) → **Access control (IAM)** → **Add role assignment**  
+   - Role: **Website Contributor** (or **Contributor** on the resource group)  
+   - Member: the app registration from step 1
+
+5. Add the five secrets in GitHub, then run **Actions** → **Deploy backend** → **Run workflow** or push to `main` under `prode-backend/`.
+
+---
+
+## First-time checklist
+
+1. PostgreSQL in Chile Central (or same region as App Service).  
+2. App Service app settings filled in.  
+3. GitHub secrets filled in (including `DATABASE_URL`).  
+4. OIDC configured.  
+5. Backend workflow green.  
+6. Vercel project connected; `vercel.json` on `main`.  
+7. Google OAuth origins include Vercel URL.  
+8. Optional: `npm run seed` once against production `DATABASE_URL`.
+
+---
+
+## Troubleshooting
+
+| Failure | Fix |
+|---------|-----|
+| `Cannot resolve environment variable: DATABASE_URL` on `npm ci` | Add `DATABASE_URL` to **GitHub Actions** secrets |
+| `AZURE_BACKEND_HOST secret is required` | Remove/disable old SWA workflow (deleted in repo); use Vercel only |
+| Azure login fails in Actions | Finish OIDC + IAM role |
+| App Service 503 after deploy | Check App Service also has `DATABASE_URL`, `JWT_SECRET`, `NODE_ENV=production` |
+| API works locally, not on Vercel | Check `vercel.json` hostname matches App Service |

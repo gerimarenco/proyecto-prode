@@ -21,7 +21,34 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NODE_VERSION: "22"
+      # Required for prisma generate (postinstall) and migrate deploy (prisma.config.ts)
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
+      - name: Check required secrets
+        run: |
+          missing=0
+          if [ -z "${{ secrets.DATABASE_URL }}" ]; then
+            echo "::error::GitHub secret DATABASE_URL is not set (Settings → Secrets and variables → Actions)."
+            missing=1
+          fi
+          if [ -z "${{ secrets.AZURE_CLIENT_ID }}" ]; then
+            echo "::error::GitHub secret AZURE_CLIENT_ID is not set. See DEPLOY.md (OIDC)."
+            missing=1
+          fi
+          if [ -z "${{ secrets.AZURE_TENANT_ID }}" ]; then
+            echo "::error::GitHub secret AZURE_TENANT_ID is not set."
+            missing=1
+          fi
+          if [ -z "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]; then
+            echo "::error::GitHub secret AZURE_SUBSCRIPTION_ID is not set."
+            missing=1
+          fi
+          if [ -z "${{ secrets.AZURE_WEBAPP_NAME }}" ]; then
+            echo "::error::GitHub secret AZURE_WEBAPP_NAME is not set (short name only, not the full URL)."
+            missing=1
+          fi
+          if [ "$missing" -eq 1 ]; then exit 1; fi
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -38,8 +65,6 @@ jobs:
 
       - name: Run Prisma migrations
         working-directory: prode-backend
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: npx prisma migrate deploy
 
       - name: Azure login
